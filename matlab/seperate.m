@@ -25,9 +25,6 @@ plot([mean(a), mean(a)], [-1, 1], 'Color', 'r')  % vert line for a_mean
 plot([-1, 1], [mean(b), mean(b)], 'Color', 'r')  % horiz line for b_mean
 ab_cov = cov(ab')  % need input column vector Nb
 
-
-
-%% 
 % we seek a linear transformation x of the data ab_norm such that 
 % when P = x*ab_norm we now have cov(P) = I. It means that all the rows 
 % of the transformed input data matrix are uncorrelated.
@@ -37,15 +34,13 @@ Y = sqrtm(inv(ab_cov)) * ab_centered  % not super sure about sqrtm
 a_plus_b = repmat(sum(Y.*Y,1),size(Y,1),1);  % row a + b duplicated (2 x N)
 [U,S,V] = svd((a_plus_b.*Y)*Y');
 ab_unmix = U*ab; % U is unmixing matrix
-%%
-% Y = sqrtm(inv(cov(ab')))*(ab-repmat(mean(ab,2),1,size(ab,2)));
-%[u,s,v] = svd((repmat(sum(Y.*Y,1),size(Y,1),1).*Y)*Y');
-% 
-% ab_unmix = W*ab; %W is unmixing matrix
-% subplot(2,2,1); plot(a); title('mixed audio - mic 1');
-% subplot(2,2,2); plot(b); title('mixed audio - mic 2');
-% subplot(2,2,3); plot(ab_unmix(1,:), 'g'); title('unmixed wave 1');
-% subplot(2,2,4); plot(ab_unmix(2,:),'r'); title('unmixed wave 2');
-% 
-% % audiowrite('unmixed1.wav', a(1,:), Fs1);
-% % audiowrite('unmixed2.wav', a(2,:), Fs1);
+
+%% Plot
+subplot(2,2,1); plot(a); title('mixed audio - mic 1');
+subplot(2,2,2); plot(b); title('mixed audio - mic 2');
+subplot(2,2,3); plot(ab_unmix(1,:), 'g'); title('unmixed wave 1');
+subplot(2,2,4); plot(ab_unmix(2,:),'r'); title('unmixed wave 2');
+
+%% Write to disk
+% audiowrite('unmixed1.wav', a(1,:), Fs1);
+% audiowrite('unmixed2.wav', a(2,:), Fs1);
