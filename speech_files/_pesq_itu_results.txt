@@ -1,0 +1,6 @@
+REFERENCE	 DEGRADED	 PESQMOS	 MOSLQO	 SAMPLE_FREQ	 MODE
+C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp1.wav	 C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp2.wav	 3.509	 3.566	 8000	nb
+C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp1.wav	 C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp2.wav	 3.837	 3.980	 8000	nb
+C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp1.wav	 C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp2.wav	 4.082	 4.232	 8000	nb
+C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp1.wav	 C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp2.wav	 4.215	 4.348	 8000	nb
+C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp1.wav	 C:\DOCUME~1\lrr\LOCALS~1\Temp\\temp2.wav	 3.959	 4.113	 8000	nb
