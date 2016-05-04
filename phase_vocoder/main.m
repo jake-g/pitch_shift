@@ -22,8 +22,11 @@ subplot(2,1,1); plot(x, 'r'); xlim([0, len]); title('Original')
 subplot(2,1,2); plot(y, 'b'); xlim([0, len]); title('Stretched')
 
 %% Change Pitch
-speed = pvoc(x, 0.8); % 4/5 speed
-pitch = resample(speed, 4, 5); % resample(input, numerator, denominator), change pitch
+% Demo is 5/4th which is major third ratio so let input be 440 (A note) then output
+% is 550 (C# which is major third)
+
+speed = pvoc(x, 1.25); % 5/4 speed
+pitch = resample(speed, 5, 4); % resample(input, numerator, denominator), change pitch
 len = max(length(speed), length(pitch)); % longer signal
 
 % Play
