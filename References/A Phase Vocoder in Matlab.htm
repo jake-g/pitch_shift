@@ -1,0 +1,227 @@
+<!doctype html public "-//w3c//dtd html 4.0 transitional//en">
+<html>
+<head>
+   <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+   <meta name="GENERATOR" content="Mozilla/4.75C-CCK-MCD {C-UDP; EBM-APPLE} (Macintosh; U; PPC) [Netscape]">
+   <meta name="Author" content="Dan Ellis <dpwe@ee.columbia.edu>">
+   <meta name="Description" content="Describes and links to an implementation of the phase vocoder algorithm for time-scale modification of audio in the Matlab language.">
+   <meta name="KeyWords" content="matlab, audio, time-scale modification, phase vocoder, pvoc">
+   <title>A Phase Vocoder in Matlab</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" link="#0000FF" vlink="#551A8B" alink="#0000FF">
+<a href="http://www.ee.columbia.edu/~dpwe/">Dan
+Ellis</a> : <a href="http://www.ee.columbia.edu/~dpwe/resources/">Resources</a>
+: <a href="http://www.ee.columbia.edu/~dpwe/resources/matlab/">Matlab</a>
+:
+<h1>
+A Phase Vocoder in Matlab
+<hr WIDTH="100%"></h1>
+
+<h3>
+Introduction</h3>
+<P>
+The Phase Vocoder [FlanG66, Dols86, LaroD99] 
+is an algorithm for timescale modification
+of audio.&nbsp; One way of understanding it is to think of it as stretching
+or compressing the time-base of a spectrogram to change the temporal characteristics
+of a sound while retaining its short-time spectral characteristics; if
+the spectrogram is narrowband (analysis window longer than a pitch cycle,
+so the individual harmonics are resolved), then preserving the spectral
+characteristics implies preserving the pitch, and avoiding the 'slowing
+down the tape' pitch drop.&nbsp; The only complication to the algorithm
+is that the phases associated with each bin in the modified spectrogram
+image have to be 'fixed up' to maintain the dphase/dtime of the original,
+thereby ensuring the correct alignment of successive windows in the overlap-add
+reconstruction.
+</P>
+
+<P>I first wrote a phase vocoder in 1990 which eventually became the 'pvoc'
+unit generator in Csound.&nbsp; This implementation is a lot smaller and
+took much less time to debug!&nbsp; It first calculates the short-time 
+Fourier transform of the signal using 'stft'; 
+'pvsample' then builds a modified spectrogram array by sampling the original
+array at a sequence of fractional time values, interpolating the magnitudes
+and fixing-up the phases as it goes along.&nbsp; The resulting time-frequency
+array can be inverted back into a sound with 'istft'.&nbsp; The 'pvoc'
+script is a wrapper to perform all three of these steps for a fixed time-scaling
+factor (larger than one for speeding up; smaller than one to slow down).&nbsp;
+But the underlying pvsample routine would also support arbitrary timebase
+variation (freezing, reversal, modulation) if one wished to write a suitable
+interface to specify the time path.</P>
+
+<H3>Code</H3>
+<p>These were developed on Matlab 5.0, but should work on any version.</p>
+<ul>
+<li>
+<a href="pvoc.m">pvoc.m</a> - the top-level routine</li>
+
+<li>
+<a href="stft.m">stft.m</a> - calculate the STFT time-frequency representation</li>
+
+<li>
+<a href="pvsample.m">pvsample.m</a> - interpolate/reconstuct the new STFT on the modified timebase</li>
+
+<li>
+<a href="istft.m">istft.m</a> - overlap-add the modified STFT back into a waveform</li>
+
+</ul>
+
+<P>
+Here's an example of how to use pvoc to slow down a soundfile of voice (sampled at 16 kHz) to 3/4 speed:</P>
+<P><tt>&raquo;[d,sr]=wavread('sf1_cln.wav');</tt>
+<br><tt>&raquo;sr</tt>
+<br><tt>sr =</tt>
+<br><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 16000</tt>
+<br><tt>&raquo;% 1024 samples is about 60 ms at 16kHz, a good window</tt>
+<br><tt>&raquo;y=pvoc(d,.75,1024);</tt>
+<br><tt>&raquo;% Compare original and resynthesis</tt>
+<br><tt>&raquo;sound(d,16000)</tt>
+<br><tt>&raquo;sound(y,16000)</tt>
+</P>
+
+<P>
+Here's how to use phase vocoder time-scale modification followed by resampling to effect a pitch shift.  In this case, we shift the pitch up by a major third (by extending duration with the phase vocoder, then resampling to the original length), then add it back to the initial sound to give harmonization:</P>
+<P><tt>&raquo;[d,sr]=wavread('<A HREF="../sinemodel/clar.wav">clar.wav</A>');</tt>
+<br><tt>&raquo;e = pvoc(d, 0.8);</tt>
+<br><tt>&raquo;f = resample(e,4,5);  % NB: 0.8 = 4/5</tt> 
+<br><tt>&raquo;soundsc(d(1:length(f))+f,sr)</tt>
+</P>
+<P>(Thanks to Mart&iacute;n Rocamora for fixing the bug here!)</P>
+
+
+
+<H3>FAQs</H3>
+
+<P><B>Q. In pvsample.m, I see you first subtract dphi from the phase difference, then add it back in before cumulating the phase.  Why bother?</B></P>
+
+<P>A. dphi is set up as:</P>
+<PRE><TT>
+  dphi(2:(1 + N/2)) = (2*pi*hop)./(N./(1:(N/2)));
+</TT></PRE>
+<P>
+It's the phase advance you'd expect to see from a sinusoid at the
+center frequency of bin n of an N point FFT if you shifted the window
+by hop points.  We only worry about the lowest N/2+1 bins, since the 
+remainder are conjugate-symmetric.
+</P>
+<P><TT>N./(1:(N/2))</TT> is the cycle length of the sinusoids at the center of bins
+1:N/2 of the FFT (counting from 0) -- i.e. FFT bin 1 corresponds to a
+sinusoid that completes 1 cycle in N samples (period N/1), and the
+highest bin (bin N/2) corresponds to a sinusoid that completes 1 cycle
+every 2 samples i.e. period N/(N/2).  So <TT>hop/(N./(1:N/2))</TT> is the
+proportion of a cycle represented by hop samples, and <TT>2*pi*...</TT> is that
+cycle proportion in radians.
+</P>
+<P>
+We're interested in estimating the frequency of a sinusoid that would
+give the phase difference we observe, but the phase difference is
+modulo 2pi (i.e. we only know it to within +/- r.2pi), so we have to
+guess a range.  That's the function of dphi:  our 'starting point' is
+to assume the sinusoid exciting bin n is exactly at the center
+frequency of that bin, in which case it would give an expected phase
+difference of dphi(n).  So the final value of dp in each column is
+actually the deviation from the expected phase advance in each bin;
+we can convert these into our best guess of the frequency in each bin 
+as <TT>freq(n) = 2*pi*n/N + dp(n)/hop</TT> (in radians per sample).
+</P>
+<P>
+When we come to reconstruct the output spectrogram, for each column we
+cumulate a phase advance consistent with the current sampling point in
+the original STFT - which is just the original phase difference,
+assuming the output and input hop sizes match.  But if the output
+hopsize was different, we'd need to know the actual effective
+frequency of the bin center, so we could scale it by a different ohop
+before collapsing down to -pi:pi.  That's when separating into dphi
+and dp would be important.  
+</P>
+<P>
+But, you're correct, in the current code it does nothing!
+</P>
+</DD>
+</DL>
+
+<H3>References</H3>
+
+<DL>
+<P>
+<DT><B>[FlanG66]</B></DT>
+<DD>J. L. Flanagan, R. M. Golden, "Phase Vocoder,"
+Bell System Technical Journal, November 1966, 1493-1509.
+<BR>
+<A HREF="http://www.ee.columbia.edu/~dpwe/e6820/papers/FlanG66.pdf">
+http://www.ee.columbia.edu/~dpwe/e6820/papers/FlanG66.pdf</A>
+</DD>
+</P>
+
+<P>
+<DT><B>[Port76]</B></DT>
+<DD>M. R. Portnoff, "Implementation of the Digital Phase Vocoder Using the Fast Fourier Transform,"
+IEEE Trans. Acous., Speech, Sig. Proc., 24(3), June 1976, 243-248.
+<A HREF="http://www.ee.columbia.edu/~dpwe/papers/Portnoff76-pvoc.pdf">
+http://www.ee.columbia.edu/~dpwe/papers/Portnoff76-pvoc.pdf</A>
+</DD>
+</P>
+
+<P>
+<DT><B>[Dols86]</B></DT>
+<DD>
+Mark Dolson, "The phase vocoder: A tutorial," Computer Music Journal,
+vol. 10, no. 4, pp. 14 -- 27, 1986.
+<BR>
+<A HREF="http://www.panix.com/~jens/pvoc-dolson.par">
+http://www.panix.com/~jens/pvoc-dolson.par</A>
+</DD>
+</P>
+
+<P>
+<DT><B>[LaroD99]</B></DT>
+<DD>
+Jean Laroche and Mark Dolson "New Phase Vocoder Technique for
+Pitch-Shifting, Harmonizing and Other Exotic Effects".
+IEEE Workshop on Applications of Signal Processing to Audio and
+Acoustics. Mohonk, New Paltz, NY. 1999.
+<BR>
+<A HREF="http://www.ee.columbia.edu/~dpwe/papers/LaroD99-pvoc.pdf">
+http://www.ee.columbia.edu/~dpwe/papers/LaroD99-pvoc.pdf</A>
+</DD>
+</P>
+</DL>
+
+<P>
+There are also recommended tutorials at
+<A HREF="http://www.dspdimension.com/admin/time-pitch-overview/">
+Stephan Bernsee's DSP dimension</A> and by 
+<A HREF="http://eceserv0.ece.wisc.edu/~sethares/vocoders/phasevocoder.html">Bill Sethares at Wisconsin</A>.
+</P>
+
+<H3>Referencing this work</H3>
+<P>
+I do not have any publication describing this code, since it is 
+basically a straightforward implementation of the Flanagan &amp; Golden / 
+Dolson phase vocoder.  However, if you use this code and would like 
+to acknowledge it with a reference, you could consider something like 
+this:
+</P>
+<PRE><TT>@misc{Ellis02-pvoc
+  author = {D. P. W. Ellis},
+  year = {2002},
+  title = {A Phase Vocoder in {M}atlab},
+  note = {Web resource},
+  url = {http://www.ee.columbia.edu/~dpwe/resources/matlab/pvoc/},
+}
+</TT></PRE>
+
+<H3>History</H3>
+<P><B>2003-03-06</B> Added pitch shifting/harmonization example</P>
+<P><B>2002-02-13</B> Revised version uses stft/istft for perfect reconstruction when r = 1.  More stuff on page.</P>
+<P><B>2000-12-11</B> First version of this page, after demo'ing in E4810.</P>
+
+
+<hr ALIGN=LEFT>
+<address>
+Last updated: $Date: 2010/10/26 18:55:10 $</address>
+
+<br><a href="http://www.ee.columbia.edu/~dpwe/">Dan Ellis</a> &lt;<a href="mailto:dpwe@ee.columbia.edu">dpwe@ee.columbia.edu</a>>
+<br>&nbsp;
+</body>
+</html>
