@@ -1,12 +1,12 @@
 # EE 443 Final Project Makefile
 # Jake Garrison, Jisoo Jung
 
-execFileName: smbPitchShift.o pitchShiftWav.o
-	gcc -Wall -g -std=c11 -o pitchShift smbPitchShift.o pitchShiftWav.o -lm -lsndfile
+pitchShift: PitchShift.o pitchShiftWav.o
+	gcc -Wall -g -std=c11 -o pitchShift PitchShift.o pitchShiftWav.o -lm -lsndfile
 	echo "DONE"
 
-smbPitchShift.o: smbPitchShift.c
-	gcc -Wall -g -std=c11 -c smbPitchShift.c
+PitchShift.o: PitchShift.c
+	gcc -Wall -g -std=c11 -c PitchShift.c
 
 snd2arr.o: pitchShiftWav.c
 	gcc -Wall -g -std=c11 -c pitchShiftWav.c
