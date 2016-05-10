@@ -10,9 +10,9 @@
 *
 * DESCRIPTION: The routine takes a pitchShift factor value which is between 0.5
 * (one octave down) and 2. (one octave up). A value of exactly 1 does not change
-* the pitch. numSampsToProcess tells the routine how many samples in indata[0...
-* numSampsToProcess-1] should be pitch shifted and moved to outdata[0 ...
-* numSampsToProcess-1]. The two buffers can be identical (ie. it can process the
+* the pitch. numSamps tells the routine how many samples in indata[0...
+* numSamps-1] should be pitch shifted and moved to outdata[0 ...
+* numSamps-1]. The two buffers can be identical (ie. it can process the
 * data in-place). fftFrameSize defines the FFT frame size used for the
 * processing. Typical values are 1024, 2048 and 4096. It may be any value <=
 * MAX_FRAME_LENGTH but it MUST be a power of 2. osamp is the STFT
@@ -37,7 +37,7 @@ void fft(float *fftBuffer, long fftFrameSize, long sign);
 double atan2(double x, double y);
 
 
-void PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata)
+void PitchShift(float pitchShift, long numSamps, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata)
 {
 
 	static float gInFIFO[MAX_FRAME_LENGTH];
@@ -77,7 +77,7 @@ void PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, lon
 	}
 
 	/* main processing loop */
-	for (i = 0; i < numSampsToProcess; i++){
+	for (i = 0; i < numSamps; i++){
 
 		/* As long as we have not yet collected enough data just read in */
 		gInFIFO[gRover] = indata[i];
