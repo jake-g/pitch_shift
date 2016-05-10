@@ -16,21 +16,22 @@ http://www.mega-nerd.com/libsndfile/api.html
 http://www.labbookpages.co.uk/audio/wavFiles.html
 */
 
-// void smbPitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
+void smbPitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
 
 int main(void)
     {
     SNDFILE *sf;
     SF_INFO info;
-    int num_channels;
-    int num, buffer_size;
+    // int num_channels;
+    int num;
+    long buffer_size;
     float *buf;
     int f, sr, c;
 
     long semitones = 3;							// shift up by 3 semitones
   	float pitchShift = pow(2., semitones/12.);	// convert semitones to factor
 
-  	char inFileName[] = "voice.aif";
+  	char inFileName[] = "in.wav";
   	char outFileName[] = "out.wav";
 
 
@@ -51,7 +52,7 @@ int main(void)
     printf("samplerate=%d\n",sr);
     printf("channels=%d\n",c);
     buffer_size = f*c;
-    printf("buffer_size=%d\n",buffer_size);
+    printf("buffer_size=%ld\n",buffer_size);
 
     /* Allocate space for the data to be read, then read it. */
     buf = (float *) malloc(buffer_size*sizeof(float));
@@ -66,7 +67,7 @@ int main(void)
 		} */
 
     // --------------------------------- call smbPitchShift() ---------------------------------
-		// smbPitchShift(pitchShift, buffer_size, 2048, 4, sr, buf, buf);
+		smbPitchShift(pitchShift, buffer_size, 2048, 4, sr, buf, buf);
 		// ----------------------------------------------------------------------------------------
 
     // Open sound file for writing
