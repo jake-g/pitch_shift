@@ -3,6 +3,10 @@
 ~*
 *.pk
 
+# Exclude personal Xcode user settings
+xcuserdata/ 
+UserInterfaceState.xcuserstate
+
 # Compiled Object files
 *.slo
 *.lo
