@@ -8,7 +8,6 @@
 
 /* Begin PBXFileReference section */
 		23F7D1741CE1DE24001F6065 /* pitchShiftWav.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pitchShiftWav.c; path = ../pitchShiftWav.c; sourceTree = "<group>"; };
-		23F7D1761CE1DE46001F6065 /* PitchShift.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = PitchShift.c; path = ../PitchShift.c; sourceTree = "<group>"; };
 		23F7D1771CE1DE7F001F6065 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; name = Makefile; path = ../Makefile; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -17,7 +16,6 @@
 			isa = PBXGroup;
 			children = (
 				23F7D1741CE1DE24001F6065 /* pitchShiftWav.c */,
-				23F7D1761CE1DE46001F6065 /* PitchShift.c */,
 				23F7D1771CE1DE7F001F6065 /* Makefile */,
 			);
 			sourceTree = "<group>";
@@ -187,6 +185,7 @@
 				23F7D1731CE1DD70001F6065 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
