@@ -73,7 +73,7 @@ void smbPitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, 
 	static float gAnaMagn[MAX_FRAME_LENGTH];
 	static float gSynFreq[MAX_FRAME_LENGTH];
 	static float gSynMagn[MAX_FRAME_LENGTH];
-	static long gRover = false, gInit = false;
+	static long gRover = 0, gInit = 0;
 	double magn, phase, tmp, window, real, imag;
 	double freqPerBin, expct;
 	long i,k, qpd, index, inFifoLatency, stepSize, fftFrameSize2;
@@ -84,10 +84,10 @@ void smbPitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, 
 	freqPerBin = sampleRate/(double)fftFrameSize;
 	expct = 2.*M_PI*(double)stepSize/(double)fftFrameSize;
 	inFifoLatency = fftFrameSize-stepSize;
-	if (gRover == false) gRover = inFifoLatency;
+	if (gRover == 0) gRover = inFifoLatency;
 
 	/* initialize our static arrays */
-	if (gInit == false) {
+	if (gInit == 0) {
 		memset(gInFIFO, 0, MAX_FRAME_LENGTH*sizeof(float));
 		memset(gOutFIFO, 0, MAX_FRAME_LENGTH*sizeof(float));
 		memset(gFFTworksp, 0, 2*MAX_FRAME_LENGTH*sizeof(float));
@@ -96,7 +96,7 @@ void smbPitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, 
 		memset(gOutputAccum, 0, 2*MAX_FRAME_LENGTH*sizeof(float));
 		memset(gAnaFreq, 0, MAX_FRAME_LENGTH*sizeof(float));
 		memset(gAnaMagn, 0, MAX_FRAME_LENGTH*sizeof(float));
-		gInit = true;
+		gInit = 1;
 	}
 
 	/* main processing loop */
