@@ -4,12 +4,13 @@
 #include <math.h>
 
 /*
+Shifts pitch by given factor. Input and output are .wav files
+
+
 Requres:
 sudo apt-get install libsndfile1
 sudo apt-get install libsndfile1-dev
 
-Build:
-gcc snd2arr.c -o snd2arr -lsndfile
 
 Notes: libsndfile
 http://www.mega-nerd.com/libsndfile/api.html
@@ -25,14 +26,14 @@ int main(void)
     // int num_channels;
     int num;
     long buffer_size;
-    float *buf;
-    int f, sr, c;
+    float *buf, sr;
+    int f, c;
 
     long semitones = 3;							// shift up by 3 semitones
   	float pitchShift = pow(2., semitones/12.);	// convert semitones to factor
 
-  	char inFileName[] = "in.wav";
-  	char outFileName[] = "out.wav";
+  	char inFileName[] = "voice.wav";
+  	char outFileName[] = "voice-out.wav";
 
 
     /* Open the WAV file. */
@@ -49,7 +50,7 @@ int main(void)
     sr = info.samplerate;
     c = info.channels;
     printf("frames=%d\n",f);
-    printf("samplerate=%d\n",sr);
+    printf("samplerate=%lf\n",sr);
     printf("channels=%d\n",c);
     buffer_size = f*c;
     printf("buffer_size=%ld\n",buffer_size);
@@ -65,6 +66,7 @@ int main(void)
 		for (i = 0; i < buffer_size; i++) {
 			printf("%f\t", buf[i]);
 		} */
+    void smbPitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
 
     // --------------------------------- call smbPitchShift() ---------------------------------
 		smbPitchShift(pitchShift, buffer_size, 2048, 4, sr, buf, buf);
