@@ -34,7 +34,7 @@ int main(void)
     SF_INFO info;
 
     /* Set Pitch Shift Factor*/
-    long semitones = 3;							// shift up by 3 semitones
+    long semitones = 5;							// shift up by 3 semitones
   	float pitchShift = pow(2., semitones/12.);	// convert semitones to factor
 
   	char inFileName[] = "voice.wav";
@@ -74,7 +74,7 @@ int main(void)
      /*  Open sound file for writing */
   	output = sf_open(outFileName, SFM_WRITE, &info);
     num = sf_writef_float(output, buf, buffer_size);
-    sf_close(input);
+    sf_close(output);
     printf("Read %d output items\n",num);
 
     return 0;

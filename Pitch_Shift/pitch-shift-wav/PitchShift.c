@@ -34,7 +34,7 @@
 #define MAX_FRAME_LENGTH 8192
 
 void fft(float *fftBuffer, long fftFrameSize, long sign);
-double atan2(double x, double y);
+double Atan2(double x, double y);
 
 
 void PitchShift(float pitchShift, long numSamps, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata)
@@ -109,7 +109,7 @@ void PitchShift(float pitchShift, long numSamps, long fftFrameSize, long osamp, 
 
 				/* compute magnitude and phase */
 				magn = 2.*sqrt(real*real + imag*imag);
-				phase = atan2(imag,real);
+				phase = Atan2(imag,real);
 
 				/* compute phase difference */
 				tmp = phase - gLastPhase[k];
@@ -255,8 +255,8 @@ void fft(float *fftBuffer, long fftFrameSize, long sign)
 	}
 }
 
-
-double atan2(double x, double y)
+/* Atan2 function (more robust than build-in atan2) */
+double Atan2(double x, double y)
 {
   double signx;
   if (x > 0.) signx = 1.;
