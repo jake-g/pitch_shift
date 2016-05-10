@@ -21,7 +21,7 @@ http://www.labbookpages.co.uk/audio/wavFiles.html
 */
 
 void printBuffer(float *arr, long size);
-void PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
+void PitchShift(float pitchShift, long numSamps, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
 
 int main(void)
 {
