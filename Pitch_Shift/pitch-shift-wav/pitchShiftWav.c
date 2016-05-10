@@ -66,9 +66,9 @@ int main(void)
 		for (i = 0; i < buffer_size; i++) {
 			printf("%f\t", buf[i]);
 		} */
-    //void PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
+    void PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
 
-    // --------------------------------- call PitchShift() ---------------------------------
+    // --------------------------------- call smbPitchShift() ---------------------------------
 		PitchShift(pitchShift, buffer_size, 2048, 4, sr, buf, buf);
 		// ----------------------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 # EE 443 Final Project Makefile
 # Jake Garrison, Jisoo Jung
 
-pitchShift: PitchShift.o pitchShiftWav.o
+execFileName: PitchShift.o pitchShiftWav.o
 	gcc -Wall -g -std=c11 -o pitchShift PitchShift.o pitchShiftWav.o -lm -lsndfile
 	echo "DONE"
 
