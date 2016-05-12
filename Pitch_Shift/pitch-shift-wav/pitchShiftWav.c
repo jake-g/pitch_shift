@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sndfile.h>
+#include <string.h>
 #include <math.h>
 
+#define NAME_SIZE 100
 /*
 
 Shifts pitch by given factor. Input and output are .wav files
@@ -22,7 +24,9 @@ http://www.labbookpages.co.uk/audio/wavFiles.html
 
 void printBuffer(float *arr, long size);
 void PitchShift(float pitchShift, long numSamps, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
+void handleInput(int argc, char ** argv, long * semitones, char inFileName[], char fileExtension[]);
 
+// command line arg format: ./pitchShift semitones inputFilename_with_extension
 int main(int argc, char * argv[])
 {
 
@@ -34,19 +38,22 @@ int main(int argc, char * argv[])
     SF_INFO info;
 
     /* Set Pitch Shift Factor*/
-    long semitones = 5;							// shift up by 3 semitones
-    if (argc == 2) {
-      semitones = atoi(argv[1]);
-    }
-  	float pitchShift = pow(2., semitones/12.);	// convert semitones to factor
+    long semitones;							// shift up by 3 semitones
+  	float pitchShift;	// convert semitones to factor
 
-  	char inFileName[] = "voice.wav";
-  	char outFileName[] = "voice-out.wav";
-
+    // file input/output handle
+  	char inFileName[NAME_SIZE];      // file name without file extension
+    char fileExtension[NAME_SIZE];   // file extension of both in/output
+  	char outFileName[NAME_SIZE];     // format: "inputName-out.extension"
+    char srcPath[NAME_SIZE]; // assuming input is in sound_files directory
+    handleInput(argc, argv, &semitones, inFileName, fileExtension);
+    sprintf(outFileName, "%s-out.%s", inFileName, fileExtension);
+    sprintf(srcPath, "sound_files/%s.%s", inFileName, fileExtension);
+    pitchShift = pow(2., semitones/12.);
 
     /* Open the WAV file. */
     info.format = 0;
-    input = sf_open(inFileName, SFM_READ,&info);
+    input = sf_open(srcPath, SFM_READ,&info);
     if (input == NULL)
     {
         printf("Failed to open the file.\n");
@@ -90,4 +97,21 @@ void printBuffer(float *arr, long size)
     for (int i = 0; i < size; i++) {
         printf("%f ", arr[i]);
     }
+}
+
+void handleInput(int argc, char ** argv, long * semitones, char inFileName[], char fileExtension[]) {
+  if (argc != 3) {
+    printf("Needs 2 arguments\n");
+    exit(0);
+  }
+
+  *semitones = atoi(argv[1]);
+
+  char del[] = ".";
+  char *ptr;
+  ptr = strtok(argv[2], del);
+  if (ptr != NULL) {
+    strcpy(inFileName, ptr);
+    strcpy(fileExtension, strtok(NULL, del));
+  }
 }
