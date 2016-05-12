@@ -23,7 +23,7 @@ http://www.labbookpages.co.uk/audio/wavFiles.html
 void printBuffer(float *arr, long size);
 void PitchShift(float pitchShift, long numSamps, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata);
 
-int main(void)
+int main(int argc, char * argv[])
 {
 
     // int num_channels;
@@ -35,6 +35,9 @@ int main(void)
 
     /* Set Pitch Shift Factor*/
     long semitones = 5;							// shift up by 3 semitones
+    if (argc == 2) {
+      semitones = atoi(argv[1]);
+    }
   	float pitchShift = pow(2., semitones/12.);	// convert semitones to factor
 
   	char inFileName[] = "voice.wav";
