@@ -7,35 +7,43 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		23EFBA581CE1EEEE00252C95 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; name = Makefile; path = "pitch-shift-wav/Makefile"; sourceTree = "<group>"; };
-		23EFBA591CE1EEEE00252C95 /* PitchShift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PitchShift.h; path = "pitch-shift-wav/PitchShift.h"; sourceTree = "<group>"; };
-		23EFBA5A1CE1EEEE00252C95 /* pitchShiftWav.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pitchShiftWav.c; path = "pitch-shift-wav/pitchShiftWav.c"; sourceTree = "<group>"; };
+		232228E21CE9E6B300AB5F96 /* PitchShift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PitchShift.h; sourceTree = "<group>"; };
+		232228E41CE9E6B300AB5F96 /* pitchShiftWav.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pitchShiftWav.c; sourceTree = "<group>"; };
+		232228E61CE9E6B300AB5F96 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		232228E81CE9E6B300AB5F96 /* sound_files */ = {isa = PBXFileReference; lastKnownFileType = folder; path = sound_files; sourceTree = "<group>"; };
+		232228E91CE9E6B300AB5F96 /* test */ = {isa = PBXFileReference; lastKnownFileType = folder; path = test; sourceTree = "<group>"; };
+		232228EB1CE9E8F200AB5F96 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		232228ED1CE9EE1200AB5F96 /* realtime.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = realtime.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		23F7D1691CE1DD70001F6065 = {
 			isa = PBXGroup;
 			children = (
-				23EFBA581CE1EEEE00252C95 /* Makefile */,
-				23EFBA591CE1EEEE00252C95 /* PitchShift.h */,
-				23EFBA5A1CE1EEEE00252C95 /* pitchShiftWav.c */,
+				232228ED1CE9EE1200AB5F96 /* realtime.c */,
+				232228EB1CE9E8F200AB5F96 /* Makefile */,
+				232228E21CE9E6B300AB5F96 /* PitchShift.h */,
+				232228E41CE9E6B300AB5F96 /* pitchShiftWav.c */,
+				232228E61CE9E6B300AB5F96 /* README.md */,
+				232228E81CE9E6B300AB5F96 /* sound_files */,
+				232228E91CE9E6B300AB5F96 /* test */,
 			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXLegacyTarget section */
-		23F7D16E1CE1DD70001F6065 /* pitch-stretch */ = {
+		23F7D16E1CE1DD70001F6065 /* pitch-shift */ = {
 			isa = PBXLegacyTarget;
 			buildArgumentsString = "$(ACTION)";
-			buildConfigurationList = 23F7D1711CE1DD70001F6065 /* Build configuration list for PBXLegacyTarget "pitch-stretch" */;
+			buildConfigurationList = 23F7D1711CE1DD70001F6065 /* Build configuration list for PBXLegacyTarget "pitch-shift" */;
 			buildPhases = (
 			);
 			buildToolPath = /usr/bin/make;
-			buildWorkingDirectory = "/Users/jake/Dropbox/projects/audio_fx/Pitch_Shift/pitch-shift-wav";
+			buildWorkingDirectory = /Users/jake/Dropbox/projects/audio_fx/Pitch_Shift/;
 			dependencies = (
 			);
-			name = "pitch-stretch";
+			name = "pitch-shift";
 			passBuildSettingsInEnvironment = 1;
 			productName = "pitch-stretch";
 		};
@@ -53,7 +61,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 23F7D16D1CE1DD70001F6065 /* Build configuration list for PBXProject "pitch-stretch" */;
+			buildConfigurationList = 23F7D16D1CE1DD70001F6065 /* Build configuration list for PBXProject "pitch-shift" */;
 			compatibilityVersion = "Xcode 3.2";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
@@ -64,7 +72,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				23F7D16E1CE1DD70001F6065 /* pitch-stretch */,
+				23F7D16E1CE1DD70001F6065 /* pitch-shift */,
 			);
 		};
 /* End PBXProject section */
@@ -154,7 +162,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "pitch-shift";
 			};
 			name = Debug;
 		};
@@ -164,14 +172,14 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "pitch-shift";
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		23F7D16D1CE1DD70001F6065 /* Build configuration list for PBXProject "pitch-stretch" */ = {
+		23F7D16D1CE1DD70001F6065 /* Build configuration list for PBXProject "pitch-shift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				23F7D16F1CE1DD70001F6065 /* Debug */,
@@ -180,7 +188,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		23F7D1711CE1DD70001F6065 /* Build configuration list for PBXLegacyTarget "pitch-stretch" */ = {
+		23F7D1711CE1DD70001F6065 /* Build configuration list for PBXLegacyTarget "pitch-shift" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				23F7D1721CE1DD70001F6065 /* Debug */,
