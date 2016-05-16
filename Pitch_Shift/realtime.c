@@ -27,7 +27,7 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *userData );
 
-long semitones = 5;
+long semitones = 3;
 
 int count = 0;
 // Calls the effect on input buffer and returns output buffer when complete
