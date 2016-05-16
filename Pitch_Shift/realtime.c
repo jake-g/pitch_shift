@@ -27,9 +27,9 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *userData );
 
-long semitones = 0;
-int count = 0;
+long semitones = 5;
 
+int count = 0;
 // Calls the effect on input buffer and returns output buffer when complete
 static int fxCallback( const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
@@ -66,41 +66,31 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
         // Buffer based effect
         PitchShift(pitchShift, buffer_size , fftSize, osamp, sr, (float *)in, out);
 
-        // Sample based effect
-        // for( i=0; i<framesPerBuffer; i++ )
-        // {
-        //     // *out++ = FUZZ(*in++);
-        //     // *out++ = DIST(*in++);
-        //     // *out++ = *in++;     /* clean */
+        // // Melody
+        // measure = 500;
+        // if (count == measure) {
+        //   semitones = 0;
+        //   printf("Setting semitone to %ld...\n", semitones);
+        // } else if (count == measure * 1/4) {
+        //   semitones += 3;
+        //   printf("Setting semitone to %ld...\n", semitones);
+        // } else if (count == measure * 2/4) {
+        //   semitones += 4;
+        //   printf("Setting semitone to %ld...\n", semitones);
+        // } else if (count == measure * 3/4) {
+        //   semitones += -7;
+        //   printf("Setting semitone to %ld...\n", semitones);'
+        // count = (count + 1) % measure;
+
         // }
 
-        // DEGUG
-        //   printBuffer(in);
-
-        // Melody
-        measure = 500;
-        if (count == measure) {
-          semitones = 0;
-          printf("Setting semitone to %ld...\n", semitones);
-        } else if (count == measure * 1/4) {
-          semitones += 3;
-          printf("Setting semitone to %ld...\n", semitones);
-        } else if (count == measure * 2/4) {
-          semitones += 4;
-          printf("Setting semitone to %ld...\n", semitones);
-        } else if (count == measure * 3/4) {
-          semitones += -7;
-          printf("Setting semitone to %ld...\n", semitones);
-        }
-
     }
-    count = (count + 1) % measure;
     // printf("%d\n", count );
     return paContinue;
 }
 
 /*******************************************************************/
-int main(int argc, char * argv[])
+int main()
 {
     PaStreamParameters inputParameters, outputParameters;
     PaStream *stream;
@@ -169,24 +159,4 @@ void printBuffer(const float *arr)
     }
     printf("\n");
 
-}
-
-/* Non-linear amplifier with soft distortion curve. */
-#define FUZZ(x) CubicAmplifier(CubicAmplifier(CubicAmplifier(CubicAmplifier(x))))
-#define DIST(x) CubicAmplifier(x)
-float CubicAmplifier( float input )
-{
-    float output, temp;
-    if( input < 0.0 )
-    {
-        temp = input + 1.0f;
-        output = (temp * temp * temp) - 1.0f;
-    }
-    else
-    {
-        temp = input - 1.0f;
-        output = (temp * temp * temp) + 1.0f;
-    }
-
-    return output;
 }
