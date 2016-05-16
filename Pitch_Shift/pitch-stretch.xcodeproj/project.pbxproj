@@ -8,7 +8,7 @@
 
 /* Begin PBXFileReference section */
 		23EFBA581CE1EEEE00252C95 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; name = Makefile; path = "pitch-shift-wav/Makefile"; sourceTree = "<group>"; };
-		23EFBA591CE1EEEE00252C95 /* PitchShift.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = PitchShift.c; path = "pitch-shift-wav/PitchShift.c"; sourceTree = "<group>"; };
+		23EFBA591CE1EEEE00252C95 /* PitchShift.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PitchShift.h; path = "pitch-shift-wav/PitchShift.h"; sourceTree = "<group>"; };
 		23EFBA5A1CE1EEEE00252C95 /* pitchShiftWav.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = pitchShiftWav.c; path = "pitch-shift-wav/pitchShiftWav.c"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -17,7 +17,7 @@
 			isa = PBXGroup;
 			children = (
 				23EFBA581CE1EEEE00252C95 /* Makefile */,
-				23EFBA591CE1EEEE00252C95 /* PitchShift.c */,
+				23EFBA591CE1EEEE00252C95 /* PitchShift.h */,
 				23EFBA5A1CE1EEEE00252C95 /* pitchShiftWav.c */,
 			);
 			sourceTree = "<group>";
