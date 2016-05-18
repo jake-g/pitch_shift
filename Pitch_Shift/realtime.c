@@ -1,5 +1,10 @@
 
 /*
+ * Reads a buffer from the OS input device (microphone)
+ * Applies processing via fxCallback
+ * Outputs audio to OS output (speakers/headphones)
+ *
+ *
  * This program uses the PortAudio Portable Audio Library.
  * For more information see: http://www.portaudio.com
  * Copyright (c) 1999-2000 Ross Bencina and Phil Burk
@@ -12,7 +17,7 @@
 
 
 #define SAMPLE_RATE         (44100)
-#define NUM_CHANNELS (1)
+#define NUM_CHANNELS        (1)
 #define PA_SAMPLE_TYPE      paFloat32
 #define FRAMES_PER_BUFFER   (64)
 typedef float SAMPLE;
@@ -39,6 +44,7 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
 {
     // Port audio variables
     SAMPLE *out = (SAMPLE*)outputBuffer;
+    SAMPLE *tmp_buff = (SAMPLE*)outputBuffer;
     const SAMPLE *in = (const SAMPLE*)inputBuffer;
     unsigned int i;
     (void) timeInfo; /* Prevent unused variable warnings. */
@@ -49,7 +55,7 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
     long buffer_size = FRAMES_PER_BUFFER;
     float sr = SAMPLE_RATE;
     long fftSize = 2048;
-    long osamp = 4;
+    long osamp = 32;
     float pitchShift = pow(2., semitones/12.);
     int measure = 0;
 
@@ -66,26 +72,26 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
         // Buffer based effect
         PitchShift(pitchShift, buffer_size , fftSize, osamp, sr, (float *)in, out);
 
-        // // Melody
-        // measure = 500;
-        // if (count == measure) {
-        //   semitones = 0;
-        //   printf("Setting semitone to %ld...\n", semitones);
-        // } else if (count == measure * 1/4) {
-        //   semitones += 3;
-        //   printf("Setting semitone to %ld...\n", semitones);
-        // } else if (count == measure * 2/4) {
-        //   semitones += 4;
-        //   printf("Setting semitone to %ld...\n", semitones);
-        // } else if (count == measure * 3/4) {
-        //   semitones += -7;
-        //   printf("Setting semitone to %ld...\n", semitones);'
-        // count = (count + 1) % measure;
-
-        // }
+         // Melody
+         measure = 10000;
+         if (count == measure) {
+           semitones = 0;
+           printf("Setting semitone to %ld...\n", semitones);
+         } else if (count == measure * 1/8) {
+           semitones += 4;
+           printf("Setting semitone to %ld...\n", semitones);
+         } else if (count == measure * 2/4) {
+           semitones += 3;
+           printf("Setting semitone to %ld...\n", semitones);
+         } else if (count == measure * 3/4) {
+           semitones += 4;
+           printf("Setting semitone to %ld...\n", semitones);
+         }
 
     }
     // printf("%d\n", count );
+count = (count + 1) % measure;
+
     return paContinue;
 }
 

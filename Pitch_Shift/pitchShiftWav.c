@@ -75,7 +75,7 @@ int main(int argc, char * argv[])
     // printBuffer(buf, buffer_size);
 
     /* Call PitchShift() */
-    PitchShift(pitchShift, buffer_size, 2048, 4, sr, buf, buf);
+    PitchShift(pitchShift, buffer_size, 2048, 32, sr, buf, buf);
 
 
      /*  Open sound file for writing */

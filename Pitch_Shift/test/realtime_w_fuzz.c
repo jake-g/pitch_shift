@@ -1,95 +1,127 @@
-
+/** @file pa_fuzz.c
+	@ingroup examples_src
+    @brief Distort input like a fuzz box.
+	@author Phil Burk  http://www.softsynth.com
+*/
 /*
+ * $Id$
+ *
  * This program uses the PortAudio Portable Audio Library.
  * For more information see: http://www.portaudio.com
  * Copyright (c) 1999-2000 Ross Bencina and Phil Burk
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/*
+ * The text above constitutes the entire PortAudio license; however, 
+ * the PortAudio community also makes the following non-binding requests:
+ *
+ * Any person wishing to distribute modifications to the Software is
+ * requested to send the modifications to the original developer so that
+ * they can be incorporated into the canonical version. It is also 
+ * requested that these non-binding requests be included along with the 
+ * license above.
+ */
 
 #include <stdio.h>
 #include <math.h>
 #include "portaudio.h"
-#include "PitchShift.h"
-
-
+/*
+** Note that many of the older ISA sound cards on PCs do NOT support
+** full duplex audio (simultaneous record and playback).
+** And some only support full duplex at lower sample rates.
+*/
 #define SAMPLE_RATE         (44100)
-#define NUM_CHANNELS (1)
 #define PA_SAMPLE_TYPE      paFloat32
 #define FRAMES_PER_BUFFER   (64)
+
 typedef float SAMPLE;
 
-
 float CubicAmplifier( float input );
-void printBuffer(const float * arr);
-int main(void);
-static int fxCallback( const void *inputBuffer, void *outputBuffer,
+static int fuzzCallback( const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags,
                          void *userData );
 
-long semitones = 0;
-int count = 0;
+/* Non-linear amplifier with soft distortion curve. */
+float CubicAmplifier( float input )
+{
+    float output, temp;
+    if( input < 0.0 )
+    {
+        temp = input + 1.0f;
+        output = (temp * temp * temp) - 1.0f;
+    }
+    else
+    {
+        temp = input - 1.0f;
+        output = (temp * temp * temp) + 1.0f;
+    }
 
-// Calls the effect on input buffer and returns output buffer when complete
-static int fxCallback( const void *inputBuffer, void *outputBuffer,
+    return output;
+}
+#define FUZZ(x) CubicAmplifier(CubicAmplifier(CubicAmplifier(CubicAmplifier(x))))
+
+static int gNumNoInputs = 0;
+/* This routine will be called by the PortAudio engine when audio is needed.
+** It may be called at interrupt level on some machines so don't do anything
+** that could mess up the system like calling malloc() or free().
+*/
+static int fuzzCallback( const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags,
                          void *userData )
 {
-    // Port audio variables
     SAMPLE *out = (SAMPLE*)outputBuffer;
     const SAMPLE *in = (const SAMPLE*)inputBuffer;
+    unsigned int i;
     (void) timeInfo; /* Prevent unused variable warnings. */
     (void) statusFlags;
     (void) userData;
-    unsigned int i; // buff iterator
 
-    // Pitch Shift variables
-    long buffer_size = FRAMES_PER_BUFFER;
-    float sr = SAMPLE_RATE;
-    long fftSize = 2048;
-    long osamp = 4;
-    float pitchShift = pow(2., semitones/12.);
-    int measure = 0;
-
-    // Fill input buffer
     if( inputBuffer == NULL )
     {
         for( i=0; i<framesPerBuffer; i++ )
         {
             *out++ = 0;  /* left - silent */
+            *out++ = 0;  /* right - silent */
         }
+        gNumNoInputs += 1;
     }
-    else    // playback
+    else
     {
-        // Buffer based effect
-        PitchShift(pitchShift, buffer_size , fftSize, osamp, sr, (float *)in, out);
-
-
-        // Melody
-        measure = 500;
-        if (count == measure) {
-          semitones = 0;
-          printf("Setting semitone to %ld...\n", semitones);
-        } else if (count == measure * 1/4) {
-          semitones += 3;
-          printf("Setting semitone to %ld...\n", semitones);
-        } else if (count == measure * 2/4) {
-          semitones += 4;
-          printf("Setting semitone to %ld...\n", semitones);
-        } else if (count == measure * 3/4) {
-          semitones += -7;
-          printf("Setting semitone to %ld...\n", semitones);
+        for( i=0; i<framesPerBuffer; i++ )
+        {
+            *out++ = FUZZ(*in++);  /* left - distorted */
+//            *out++ = *in++;          /* right - clean */
         }
-
     }
-    count = (count + 1) % measure;
-    // printf("%d\n", count );
+    
     return paContinue;
 }
 
 /*******************************************************************/
+int main(void);
 int main(void)
 {
     PaStreamParameters inputParameters, outputParameters;
@@ -104,7 +136,7 @@ int main(void)
       fprintf(stderr,"Error: No default input device.\n");
       goto error;
     }
-    inputParameters.channelCount = NUM_CHANNELS;       /* stereo input */
+    inputParameters.channelCount = 2;       /* stereo input */
     inputParameters.sampleFormat = PA_SAMPLE_TYPE;
     inputParameters.suggestedLatency = Pa_GetDeviceInfo( inputParameters.device )->defaultLowInputLatency;
     inputParameters.hostApiSpecificStreamInfo = NULL;
@@ -114,7 +146,7 @@ int main(void)
       fprintf(stderr,"Error: No default output device.\n");
       goto error;
     }
-    outputParameters.channelCount = NUM_CHANNELS;       /* stereo output */
+    outputParameters.channelCount = 2;       /* stereo output */
     outputParameters.sampleFormat = PA_SAMPLE_TYPE;
     outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
     outputParameters.hostApiSpecificStreamInfo = NULL;
@@ -126,7 +158,7 @@ int main(void)
               SAMPLE_RATE,
               FRAMES_PER_BUFFER,
               0, /* paClipOff, */  /* we won't output out of range samples so don't bother clipping them */
-              fxCallback,
+              fuzzCallback,
               NULL );
     if( err != paNoError ) goto error;
 
@@ -138,7 +170,7 @@ int main(void)
     err = Pa_CloseStream( stream );
     if( err != paNoError ) goto error;
 
-    printf("Finished...\n");
+    printf("Finished. gNumNoInputs = %d\n", gNumNoInputs );
     Pa_Terminate();
     return 0;
 
