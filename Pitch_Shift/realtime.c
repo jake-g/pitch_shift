@@ -53,7 +53,7 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
     // Pitch Shift variables
     long buffer_size = FRAMES_PER_BUFFER;
     float sr = SAMPLE_RATE;
-    long fftSize = 1024;
+    long fftSize = 2048;
     long osamp = 4;
     float pitchShift = pow(2., semitones/12.);
     int measure = 0;
@@ -71,9 +71,8 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
         // Buffer based effect
         PitchShift(pitchShift, buffer_size , fftSize, osamp, sr, (float *)in, out);
 
-         // Melody
-      // Melody
-        measure = 1000;
+      // Melody Loop
+        measure = 1000;  // determines the amount of samples before sequence repeats
         if (count == measure * 8/8 - 1) {
             semitones += 3;
 	  fflush(stdout);
@@ -100,20 +99,6 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
             semitones -= 3;
             printf("%ld\t", semitones);
         }	
-/*   measure = 10000;
-         if (count == measure) {
-           semitones = 0;
-           printf("Setting semitone to %ld...\n", semitones);
-         } else if (count == measure * 1/4) {
-           semitones += 4;
-           printf("Setting semitone to %ld...\n", semitones);
-         } else if (count == measure * 2/4) {
-           semitones += 3;
-           printf("Setting semitone to %ld...\n", semitones);
-         } else if (count == measure * 3/4) {
-           semitones += 4;
-           printf("Setting semitone to %ld...\n", semitones);
-         }*/
 
     }
 //    printf("%d\n", count );
