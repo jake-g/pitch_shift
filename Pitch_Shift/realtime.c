@@ -16,7 +16,7 @@
 #include "PitchShift.h"
 
 
-#define SAMPLE_RATE         (44100)
+#define SAMPLE_RATE         (8000)
 #define NUM_CHANNELS        (1)
 #define PA_SAMPLE_TYPE      paFloat32
 #define FRAMES_PER_BUFFER   (64)
@@ -32,7 +32,7 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *userData );
 
-long semitones = 3;
+long semitones = 2;
 
 int count = 0;
 // Calls the effect on input buffer and returns output buffer when complete
@@ -44,7 +44,6 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
 {
     // Port audio variables
     SAMPLE *out = (SAMPLE*)outputBuffer;
-    SAMPLE *tmp_buff = (SAMPLE*)outputBuffer;
     const SAMPLE *in = (const SAMPLE*)inputBuffer;
     unsigned int i;
     (void) timeInfo; /* Prevent unused variable warnings. */
@@ -54,8 +53,8 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
     // Pitch Shift variables
     long buffer_size = FRAMES_PER_BUFFER;
     float sr = SAMPLE_RATE;
-    long fftSize = 2048;
-    long osamp = 32;
+    long fftSize = 1024;
+    long osamp = 4;
     float pitchShift = pow(2., semitones/12.);
     int measure = 0;
 
@@ -73,11 +72,39 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
         PitchShift(pitchShift, buffer_size , fftSize, osamp, sr, (float *)in, out);
 
          // Melody
-         measure = 10000;
+      // Melody
+        measure = 1000;
+        if (count == measure * 8/8 - 1) {
+            semitones += 3;
+	  fflush(stdout);
+            printf("\n%d samples, loop...\t", measure);
+        } else if (count == measure * 1/8) {
+            semitones += 4;
+            printf("%ld\t", semitones);
+        } else if (count == measure * 2/8) {
+            semitones += 3;
+            printf("%ld\t", semitones);
+        } else if (count == measure * 3/8) {
+            semitones += 4;
+            printf("%ld\t", semitones);
+        } else if (count == measure * 4/8) {
+            semitones -= 4;
+            printf("%ld\t", semitones);
+        } else if (count == measure * 5/8) {
+            semitones -= 3;
+            printf("%ld\t", semitones);
+        } else if (count == measure * 6/8) {
+            semitones -= 4;
+            printf("%ld\t", semitones);
+        } else if (count == measure * 7/8) {
+            semitones -= 3;
+            printf("%ld\t", semitones);
+        }	
+/*   measure = 10000;
          if (count == measure) {
            semitones = 0;
            printf("Setting semitone to %ld...\n", semitones);
-         } else if (count == measure * 1/8) {
+         } else if (count == measure * 1/4) {
            semitones += 4;
            printf("Setting semitone to %ld...\n", semitones);
          } else if (count == measure * 2/4) {
@@ -86,11 +113,11 @@ static int fxCallback( const void *inputBuffer, void *outputBuffer,
          } else if (count == measure * 3/4) {
            semitones += 4;
            printf("Setting semitone to %ld...\n", semitones);
-         }
+         }*/
 
     }
-    // printf("%d\n", count );
-count = (count + 1) % measure;
+//    printf("%d\n", count );
+	count = (count + 1) % measure;
 
     return paContinue;
 }

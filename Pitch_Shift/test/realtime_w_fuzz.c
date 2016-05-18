@@ -79,7 +79,7 @@ float CubicAmplifier( float input )
 
     return output;
 }
-#define FUZZ(x) CubicAmplifier(CubicAmplifier(CubicAmplifier(CubicAmplifier(x))))
+#define FUZZ(x) CubicAmplifier(x)
 
 static int gNumNoInputs = 0;
 /* This routine will be called by the PortAudio engine when audio is needed.
@@ -113,7 +113,8 @@ static int fuzzCallback( const void *inputBuffer, void *outputBuffer,
         for( i=0; i<framesPerBuffer; i++ )
         {
             *out++ = FUZZ(*in++);  /* left - distorted */
-//            *out++ = *in++;          /* right - clean */
+            //*out++ = *in++;          /* left - clean */
+            *out++ = *in++;          /* right - clean */
         }
     }
     
