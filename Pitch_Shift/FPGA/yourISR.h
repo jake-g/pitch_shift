@@ -19,10 +19,6 @@
 
 #define UART_BUFFER_SIZE 256
 
-//----------------------------------------------------------
-unsigned int leftIndex = 0;
-//----------------------------------------------------------
-
 //Value for interrupt ID
 extern alt_u32 switch0_id;
 extern alt_u32 switch1_id;
@@ -175,16 +171,52 @@ alt_16 signed2unsigned(int sign){
 	return result;
 }
 
+//----------------------------------------------------------
+short leftIndex = 0;
+short firstLoopCounter = 0;
+//----------------------------------------------------------
 static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 	volatile int* leftreadyptr = (volatile int *)context;
 	*leftreadyptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE);
 	IOWR_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE, 0);
 	// --------- Read, playback, store data -----
-	leftChannel = IORD_ALTERA_AVALON_PIO_DATA(LEFTDATA_BASE);
+	leftChannel = unsigned2signed(IORD_ALTERA_AVALON_PIO_DATA(LEFTDATA_BASE));
 
-	IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, leftChannel);
+	if (firstLoopCounter < FRAMES_PER_BUFFER) {
+		outputBuffer[firstLoopCounter] = 0;
+		inputBuffer[firstLoopCounter] = leftChannel;
+		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 0);
+		firstLoopCounter++;
+		if (firstLoopCounter == 2) {
+			printf("initial buffer\n");
+		}
+	} else if (leftIndex + 1 == FRAMES_PER_BUFFER) {
+		inputBuffer[leftIndex] = leftChannel;
+		//IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, (int) outputBuffer[leftIndex]);
+		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, leftChannel);
+		//IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, leftChannel);
+		float pitchShift = pow(2., semitones/12.);
+		// Buffer based effect
+		/*PitchShift(pitchShift,
+				   buffer_size,
+				   fftSize,
+				   osamp,
+				   (float) SAMPLING_RATE,
+				   inputBuffer,
+				   outputBuffer);*/
+//		printf("input = %f, output = %f\n", inputBuffer[leftIndex], outputBuffer[leftIndex]);
+		printf("64th sample\n");
+	} else {
+		inputBuffer[leftIndex] = leftChannel;
+		//IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, (int) outputBuffer[leftIndex]);
+		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, leftChannel);
+		//IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, leftChannel);
+		if (leftIndex == 2) {
+			printf("playback\n");
+		}
+	}
+
 	leftIndex = (leftIndex + 1) % FRAMES_PER_BUFFER;
-
 	//-------------------------------------------
 }
 
@@ -198,36 +230,6 @@ static void handle_rightready_interrupt_test(void* context, alt_u32 id) {
 	 rightChannelData[rightCount] = rightChannel;
 	 rightCount = (rightCount+1) % BUFFERSIZE;
 	 /****************************************/
-}
-
-// Callback function
-// Calls the effect on input buffer and returns output buffer when complete
-static void fxCallback(void) {
-	// playback
-	float pitchShift = pow(2., semitones/12.);
-	// Buffer based effect
-	PitchShift(pitchShift,
-			   buffer_size,
-			   fftSize,
-			   osamp,
-			   sr,
-			   inputBuffer,
-			   outputBuffer);
-	// Melody
-	if (sampleCount == measure) {
-		semitones = 0;
-		printf("Setting semitone to %ld...\n", semitones);
-	} else if (sampleCount == measure * 1/8) {
-		semitones += 4;
-		printf("Setting semitone to %ld...\n", semitones);
-	} else if (sampleCount == measure * 2/4) {
-		semitones += 3;
-		printf("Setting semitone to %ld...\n", semitones);
-	} else if (sampleCount == measure * 3/4) {
-		semitones += 4;
-		printf("Setting semitone to %ld...\n", semitones);
-	}
-	sampleCount = (sampleCount + 1) % measure;
 }
 
 #endif /* YOURISR_H_ */

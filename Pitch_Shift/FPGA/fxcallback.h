@@ -3,10 +3,9 @@
 
 #include "PitchShift.h"
 
-#define SAMPLING_RATE       (44100)
-#define FRAMES_PER_BUFFER   (64)
+#define SAMPLING_RATE       (8000)
+#define FRAMES_PER_BUFFER   (512)
 
-static void fxCallback(void);
 
 // Current semitone difference from original input 
 long semitones = 3;
@@ -17,15 +16,13 @@ int sampleCount = 0;
 
 // Pitch Shift variables
 long buffer_size = FRAMES_PER_BUFFER;
-float sr = SAMPLING_RATE;
-long fftSize = 2048;
-long osamp = 32;
+//float sr = SAMPLING_RATE;
+long fftSize = 256;
+long osamp = 4;
 // pitchShift variable defined in PitchShift function
 //float pitchShift = pow(2., semitones/12.);
 
 float inputBuffer[FRAMES_PER_BUFFER];
 float outputBuffer[FRAMES_PER_BUFFER];
-
-short isFirstLoop = 1;
 
 #endif /* FX_CALLBACK_H */

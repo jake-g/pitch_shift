@@ -36,23 +36,21 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-//#define MAX_FRAME_LENGTH 8192
-#define MAX_FRAME_LENGTH 1024
+#define MAX_FRAME_LENGTH 256
 void fft_custom(float *fftBuffer, long fftFrameSize, long sign);
 double Atan2(double x, double y);
 
-static float inQueue[MAX_FRAME_LENGTH];
-static float outQueue[MAX_FRAME_LENGTH];
-static float windowedQueue[2*MAX_FRAME_LENGTH];
-static float lastPhase[MAX_FRAME_LENGTH/2+1];
-static float outAccum[2*MAX_FRAME_LENGTH];
-static float inFrequencies[MAX_FRAME_LENGTH];
-static float inMagnitudes[MAX_FRAME_LENGTH];
-static float outFrequencies[MAX_FRAME_LENGTH];
-static float outMagnitudes[MAX_FRAME_LENGTH];
-
 void PitchShift(float pitchShift, long numSamps, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata)
 {
+	static float inQueue[MAX_FRAME_LENGTH];
+	static float outQueue[MAX_FRAME_LENGTH];
+	static float windowedQueue[2*MAX_FRAME_LENGTH];
+	static float lastPhase[MAX_FRAME_LENGTH/2+1];
+	static float outAccum[2*MAX_FRAME_LENGTH];
+	static float inFrequencies[MAX_FRAME_LENGTH];
+	static float inMagnitudes[MAX_FRAME_LENGTH];
+	static float outFrequencies[MAX_FRAME_LENGTH];
+	static float outMagnitudes[MAX_FRAME_LENGTH];
 	static long queueCounter = 0, initFlag = 0;
 	double magn, phase, tmp, window, real, imag, sampsPerBin, exp;
 	long i,k, phaseChange, index, inputLatency, stepSize;

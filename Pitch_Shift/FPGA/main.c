@@ -1,7 +1,3 @@
-/* HW1 QUESTION 1
- * Jake and Jisoo
- */
-
 /* This is the main file that contains the main function and the
  * main while(1) loop.
  * Once you understand our code, please feel free to modify them
@@ -67,7 +63,7 @@ int convResultBuffer[CONVBUFFSIZE];
  *
  * rx_buffer-> A ring buffer to collect uart data sent by host computer
  * */
-alt_16 datatest[UART_BUFFER_SIZE];
+alt_16 datatest[256];
 unsigned short RxHead=0;
 unsigned char rx_buffer[RX_BUFFER_SIZE];
 
@@ -87,7 +83,7 @@ int uartStartSendFlag = 0;
 int uartStartRecvFlag = 0;
 
 /*for uart receive purpose*/
-//int sr = 0;
+int sr = 0;
 
 /*0->do not update sampling frequency*/
 /*1->ok, update sampling frequency to AIC23*/
@@ -150,41 +146,24 @@ void system_initialization(){
 	 IOWR_ALTERA_AVALON_PIO_DATA(SCLK_BASE, 0); // Initialize SCLK to high
 }
 
-/*
-Based on the example, Sine8_LED.c Sine generation with DIP switch control, given in the
-lecture note 2, generate an 800Hz sine wave with an 8KHz sampling rate (10 samples per period) and
-output to the LINEOUT jack of the AIC23 daughter card. Use an oscilloscope attached to the LINEOUT jack
-to verify. Also take advantage of the data exporting via UART (see the example in Lecture Note 1 about
-transferring a chunk of data to Matlab via UART), use the appropriate Matlab command to plot the 256
-most recent output samples in the time domain, as well as the FFT magnitudes of these 256 samples.
- *
- * */
+
 int main(void) {
 	 system_initialization();
      // set frequency
-	 //sampleFrequency = 0x000C; //8k
+	 sampleFrequency = 0x000C; //8k
 	 //sampleFrequency = 0x0019; //32k
-	 sampleFrequency = 0x0023; //44.1k
+	 //sampleFrequency = 0x0023; //44.1k
 	 //sampleFrequency = 0x0001; //48k
+	 aic23_demo[4] = 0x0014;
 	 aic23_demo[8] = sampleFrequency;
-	 aic23_demo[4] = 0x0014; // MIC input
 	 AIC23_demo();
 
+
 	 /*Your main infinity while loop*/
-/*	 int i;
 	 while(1){
-		 if (uartStartSendFlag) {
-			 for (i = 0; i < UART_BUFFER_SIZE; i++) {
-				uart_sendInt16(datatest[i]);
-			 }
-			 uartStartSendFlag = 0;
-		 }
-		 IOWR_ALTERA_AVALON_PIO_DATA(LED_BASE, IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE));
-	 }
-	 */
-	 while(1) {
-		 if (uartStartSendFlag) {
-			 uartStartSendFlag = 0;
+		 if(uartStartSendFlag){
+			uartStartSendFlag = 0;
+			printf("UART\n");
 		 }
 	 }
 
