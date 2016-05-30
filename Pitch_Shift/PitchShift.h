@@ -2,8 +2,7 @@
 *
 
 * NAME: PitchShift.h
-* VERSION: 1.2
-* HOME URL: http://www.dspdimension.com
+* ALGORITHM: http://www.dspdimension.com
 *
 * SYNOPSIS: Routine for doing pitch shifting while maintaining
 * duration using the Short Time Fourier Transform.
