@@ -9,7 +9,8 @@
 /////////////////////////////////////////////////////////////////////
 
 #include <stdexcept>
-#include "wavfile.h"
+#include <string.h>
+#include "WavFile.h"
 
 using namespace std;
 
