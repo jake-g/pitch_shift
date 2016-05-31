@@ -1,5 +1,7 @@
+% Delay Based Pitch SHift
+
 %% Pitch Shift
-input_file = 'sine-wave.wav';
+input_file = '../sound_files/sine-wave.wav';
 semitones = 4;
 output = pitch_shift(input_file, semitones);
 

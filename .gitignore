@@ -2,6 +2,9 @@
 .icon
 ~*
 *.pk
+*.dSYM
+*.pkf
+*.asd
 
 # Exclude personal Xcode user settings
 xcuserdata/ 
