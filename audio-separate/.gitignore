@@ -1,0 +1,24 @@
+*Debug/
+.DS_Store
+Icon
+
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+.project
+.externalToolBuilders/
+.recommenders/
+*.launch
+
+
+# CDT-specific (C/C++ Development Tooling)
+.cproject
+
