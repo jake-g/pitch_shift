@@ -1,21 +1,66 @@
-#ifndef PitchShift_H_ /* Include guard */
-#define PitchShift_H_
+/*
+
+
+SIMULATES REALTIME
+splits wav into chunks and shifts
+
+
+*/
+#ifndef PitchShiftFile_H_ /* Include guard */
+#define PitchShiftFile_H_
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
 /* Function prototypes */
-void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf);
+void PitchShift(float pitch_factor, int file_size, int* inbuf, int* outbuf);
 
-#define BUFFSIZE 1000
-#define PING 0
-#define PONG 1
-#define M_PI_2 6.28
+/*A
+// for Fs = 44.1k Hz
+#define BUFF_SIZE 250
 #define BUFFER_DEPTH 1764 //40e-3s * fs
 #define DELAY_DEPTH_UP 529 //12e-3s * fs
 #define INITIAL_DELAY_UP 1323 //30e-3s * fs
 #define INITIAL_DELAY_DOWN 4 //0.1e-3s * fs
+*/
+
+/*B
+// CURRENT
+#define BUFF_SIZE 250
+#define BUFFER_DEPTH 882 //
+#define DELAY_DEPTH_UP 264
+#define INITIAL_DELAY_UP 661
+#define INITIAL_DELAY_DOWN 4
+*/
+
+/*C
+// for Fs = 8k Hz
+#define BUFF_SIZE 250
+#define BUFFER_DEPTH 500
+#define DELAY_DEPTH_UP 180
+#define INITIAL_DELAY_UP 440
+#define INITIAL_DELAY_DOWN 4
+*/
+
+/*D
+#define BUFF_SIZE 250 //
+#define BUFFER_DEPTH 420 //
+#define DELAY_DEPTH_UP 140 //
+#define INITIAL_DELAY_UP 140
+#define INITIAL_DELAY_DOWN 4
+*/
+
+/*E*/
+// for Fs = 8k Hz
+#define BUFF_SIZE 250 // 0.03s * fs
+#define BUFFER_DEPTH 352 //40e-3s * fs
+#define DELAY_DEPTH_UP 96 //12e-3s * fs
+#define INITIAL_DELAY_UP 240 //30e-3s * fs
+#define INITIAL_DELAY_DOWN 4 //0.1e-3s * fs
+
+
 #define DELAY_DEPTH_DOWN INITIAL_DELAY_UP - DELAY_DEPTH_UP + INITIAL_DELAY_DOWN
 #define PI_HALF 1.5708
 
@@ -24,31 +69,27 @@ int DRY_MIX = 0; // dry=1 means 100% original
 int bufferA[BUFFER_DEPTH]; // Transmit PING buffer
 int bufferB[BUFFER_DEPTH]; // Transmit PONG buffer
 int change_direction = 1; //change from pitch up to down and vice versa
-float pitch_factor =0.2646; //.006ms * fs, 0.5292 for .012ms;
 
 //globals for PitchShift fnc
 int Ga, Gb, crossfading, crossfadingAB, q;
 int bufferABptr, Aout, Bout, delaya, delayb;
-int pitch_shift_up = 1;
+int pitch_shift_up = 0;
 float bufferAptr_float, bufferBptr_float;
 int channel_feedback = 0;
+float pitch_shift_rate;
 
-// PING PONG EXAMPLE LOGIC
-// /* Copy data from transmit to receive, could process audio here */
-// if (pingPong == PING) {
-//     /* Copy receive PING buffer to transmit PING buffer */
-//    PitchShift(gBufferRcvPing, gBufferXmtPing);
-// }
-// else {
-//     /* Copy receive PONG buffer to transmit PONG buffer */
-//     PitchShift(gBufferRcvPong, gBufferXmtPong);
-//     /* Toggle LED #3 as a visual cue */
-//                     DSK6713_LED_toggle(2); //indicates inbuf in and out buffers working
-// }
-
-void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf)
-{
+void PitchShiftFile(float pitch_factor, int file_size, int* inbuf, int* outbuf) {
     int m, i, bufferAptr2_float, bufferBptr2_float;
+
+    // Set pitch_shift_rate based off the pitch_factor arg
+    if (pitch_factor > 1) {  // pitch UP
+    	pitch_shift_rate = pitch_factor - 1;
+    	pitch_shift_up = 1;
+    } else if (pitch_factor < 1){ // pitch DOWN
+      pitch_shift_rate = 1 - pitch_factor;
+    } else {  // no change
+      pitch_shift_rate = 0;
+    }
 
     if (change_direction == 1) {
         // Inits performed when first time for a pitch change directions
@@ -85,7 +126,7 @@ void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf)
 
     //          buff a and b are circular
     // for (m = 0; m < BUFFSIZE; m++) {
-    for (m = 0; m < buffer_size; m++) {
+    for (m = 0; m < file_size; m++) {
 
         if (((bufferAptr_float + 1) >= 0) & ((bufferAptr_float + 1) <= BUFFER_DEPTH - 1))
             bufferAptr2_float = bufferA[(int)bufferAptr_float + 1];
@@ -139,17 +180,17 @@ void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf)
         if (crossfading == 1) {
             //check which direction we are crossfading
             if (crossfadingAB) {
-                Ga = cos((pitch_factor / DELAY_DEPTH_UP) * PI_HALF * q);
+                Ga = cos((pitch_shift_rate / DELAY_DEPTH_UP) * PI_HALF * q);
                 Gb = 1 - Ga;
                 q = q + 1;
             }
             else {
-                Gb = cos((pitch_factor / DELAY_DEPTH_UP) * PI_HALF * q);
+                Gb = cos((pitch_shift_rate / DELAY_DEPTH_UP) * PI_HALF * q);
                 Ga = 1 - Gb;
                 q = q + 1;
             }
             // Are we done crossfading?  If so, stop, reset appropriate delay
-            if ((q >= (int)((DELAY_DEPTH_UP) / pitch_factor)) && (Ga < Gb)) {
+            if ((q >= (int)((DELAY_DEPTH_UP) / pitch_shift_rate)) && (Ga < Gb)) {
                 Ga = 0;
                 Gb = 1;
                 q = 1;
@@ -159,7 +200,7 @@ void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf)
                 else
                     bufferAptr_float = INITIAL_DELAY_DOWN;
             }
-            if ((q >= (int)((DELAY_DEPTH_UP) / pitch_factor)) && (Ga > Gb)) {
+            if ((q >= (int)((DELAY_DEPTH_UP) / pitch_shift_rate)) && (Ga > Gb)) {
                 Gb = 0;
                 Ga = 1;
                 q = 1;
@@ -174,15 +215,15 @@ void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf)
         // Change channel delays according to desired pitch shift
         if (pitch_shift_up) {
             if (Ga != 0) // only change pointers for active channels
-                bufferAptr_float = bufferAptr_float - pitch_factor;
+                bufferAptr_float = bufferAptr_float - pitch_shift_rate;
             if (Gb != 0)
-                bufferBptr_float = bufferBptr_float - pitch_factor;
+                bufferBptr_float = bufferBptr_float - pitch_shift_rate;
         }
         else {
             if (Ga != 0) //only change pointers for active channels
-                bufferAptr_float = bufferAptr_float + pitch_factor;
+                bufferAptr_float = bufferAptr_float + pitch_shift_rate;
             if (Gb != 0)
-                bufferBptr_float = bufferBptr_float + pitch_factor;
+                bufferBptr_float = bufferBptr_float + pitch_shift_rate;
         }
 
         //decrement pointers
@@ -205,4 +246,4 @@ void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf)
     //LOG_printf(&trace,"m = %d",m);
 }
 
-#endif // PitchShift_H_
+#endif // PitchShiftFile_H_

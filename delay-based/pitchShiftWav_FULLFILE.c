@@ -34,7 +34,7 @@ int main(int argc, char* argv[])
 
     /* Initialize args*/
     float sr, pitch_factor;
-    int *file_buf, *buf, num, f, c, file_size, semitones;
+    int *buf, num, f, c, buffer_size, semitones;
     char inFileName[NAME_SIZE]; // file name without file extension
     char fileExtension[NAME_SIZE]; // file extension of both in/output
     char outPath[NAME_SIZE]; // format: "inputName-out.extension"
@@ -58,41 +58,23 @@ int main(int argc, char* argv[])
     f = info.frames;
     sr = info.samplerate;
     c = info.channels;
-    file_size = f * c;
-    printf("Input: samplerate: %0.0lf, channels: %d, file_size: %d\n", sr, c, file_size);
+    buffer_size = f * c;
+    printf("Input: samplerate: %0.0lf, channels: %d, buffer_size: %d\n", sr, c, buffer_size);
     printf("Shifted by a factor of %f\n", pitch_factor);
 
     /* Allocate space for the data to be read, then read it. */
-    file_buf = (int*)malloc(file_size * sizeof(int));
-    num = sf_readf_int(input, file_buf, file_size);
+    buf = (int*)malloc(buffer_size * sizeof(int));
+    num = sf_readf_int(input, buf, buffer_size);
     sf_close(input);
     printf("Read %d samples from %s\n", num, srcPath);
-    // printBuffer(file_buf, file_size);
+    // printBuffer(buf, buffer_size);
 
-    int s, bs;
-    buf = (int*)malloc(file_size * sizeof(int));
-    int buf_size = BUFF_SIZE;
-    for (s = 0; s < file_size; s++) {
-      buf[s % buf_size] = file_buf[s];
-
-      /* Call PitchShift() */
-      if (s % buf_size == 0 && s != 0) {
-        // printf("s = %d\t",s - buf_size);
-        PitchShiftFile(pitch_factor, buf_size, buf, buf);
-        for (bs = s - buf_size; bs < s; bs++) {
-            // printf("%d ", bs % buf_size);
-            file_buf[bs] = buf[bs % buf_size];
-        }
-      }
-    }
-
-
-    //PitchShiftFile(pitch_factor, file_size, file_buf, file_buf);
-
+    /* Call PitchShift() */
+    PitchShiftFile(pitch_factor, buffer_size, buf, buf);
 
     /*  Open sound file for writing */
     output = sf_open(outPath, SFM_WRITE, &info);
-    num = sf_writef_int(output, file_buf, file_size);
+    num = sf_writef_int(output, buf, buffer_size);
     sf_close(output);
     printf("Wrote %d samples to %s\n", num, outPath);
 

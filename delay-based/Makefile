@@ -6,11 +6,10 @@
 shiftWav: pitchShiftWav.c
 	gcc -Wall -g -std=c11 -o shiftWav pitchShiftWav.c -lm -lsndfile
 
-
 # shiftRealtime: realtime.c
 # 	gcc realtime.c -o shiftRealtime -lportaudio
 
 
 clean:
 	rm -f *.o shiftWav
-	# rm -f *.o shiftRealtime
+	rm -f *.o shiftRealtime
