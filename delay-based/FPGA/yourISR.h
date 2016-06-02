@@ -21,7 +21,6 @@
 
 #define UART_BUFFER_SIZE 256
 // size for ping pong buffer
-#define BUFF_SIZE 200
 
 void waitFor (unsigned int n) {
 	printf("Pausing %d iterations...", n);
@@ -29,6 +28,22 @@ void waitFor (unsigned int n) {
 	for (i = 0; i < n; i ++);
 	printf("Finished\n");
 }
+// ------------------------------------------------------
+int PONG[BUFF_SIZE]; // Transmit PING buffer
+int PING[BUFF_SIZE]; // Transmit PONG buffer
+
+int * playAndFillBuffer = NULL;
+int * processBuffer = NULL;
+int sampleIndex = 0;
+int input_ready = 0;
+
+short ptrStatus = 0;
+
+float pitch_factor = 1;
+
+int iii = 0;
+// ------------------------------------------------------
+
 
 //Value for interrupt ID
 extern alt_u32 switch0_id;
@@ -124,6 +139,8 @@ static void handle_key0_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
 
 	 uartStartSendFlag = 1;
+	 pitch_factor = 1;
+	 printf("pitch_factor set to 0\n");
 }
 
 /* Enable the flag to update the
@@ -138,6 +155,12 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 
 	 //IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH1_BASE, 0x01);
 	 setFreqFlag = 1;
+	 if (pitch_factor <= 0) {
+		 printf("pitch_factor cannot be lower than 0\n");
+	 } else {
+		 pitch_factor = pitch_factor - 0.1;
+		 printf("pitch_factor decreased to %f\n", pitch_factor);
+	 }
 }
 
 static void handle_key2_interrupt(void* context, alt_u32 id) {
@@ -146,7 +169,8 @@ static void handle_key2_interrupt(void* context, alt_u32 id) {
 
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
-
+	 pitch_factor = pitch_factor + 0.1;
+	 printf("pitch_factor increased to %f\n", pitch_factor);
 }
 
 static void handle_key3_interrupt(void* context, alt_u32 id) {
@@ -184,19 +208,7 @@ alt_16 signed2unsigned(int sign){
 	return result;
 }
 
-// ------------------------------------------------------
-int PONG[BUFF_SIZE]; // Transmit PING buffer
-int PING[BUFF_SIZE]; // Transmit PONG buffer
 
-int * playAndFillBuffer = NULL;
-int * processBuffer = NULL;
-int sampleIndex = 0;
-int input_ready = 0;
-
-short ptrStatus = 0;
-
-int iii = 0;
-// ------------------------------------------------------
 static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 	volatile int* leftreadyptr = (volatile int *)context;
 	*leftreadyptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE);
@@ -253,7 +265,7 @@ static void handle_rightready_interrupt_test(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(RIGHTREADY_BASE, 0);
 	 /*******Read, playback, store data*******/
 	 rightChannel = IORD_ALTERA_AVALON_PIO_DATA(RIGHTDATA_BASE);
-	 IOWR_ALTERA_AVALON_PIO_DATA(RIGHTSENDDATA_BASE, rightChannel);
+	 //IOWR_ALTERA_AVALON_PIO_DATA(RIGHTSENDDATA_BASE, rightChannel);
 	 rightChannelData[rightCount] = rightChannel;
 	 rightCount = (rightCount+1) % BUFFERSIZE;
 	 /****************************************/

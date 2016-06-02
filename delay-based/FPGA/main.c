@@ -174,7 +174,6 @@ int main(void) {
 	memset(PONG, 0, BUFF_SIZE);
 
 	printf("float = %d, int = %d\n", sizeof(float), sizeof(int));
-	float pitch_factor = 1.3;
 	while(1){
 		if (uartStartSendFlag) {
 			printf("UART SENT\n");
