@@ -180,7 +180,7 @@ int main(void) {
 			uartStartSendFlag = 0;
 		}
 		if (input_ready) {
-			PitchShift(pitch_factor, BUFF_SIZE, processBuffer, processBuffer);
+			PitchShift(pitch_factor, processBuffer, processBuffer);
 			input_ready = 0;
 		}
 	}
