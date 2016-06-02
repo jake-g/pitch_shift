@@ -15,11 +15,20 @@ void PitchShift(float pitch_factor, int buffer_size, int* inbuf, int* outbuf);
 #define INITIAL_DELAY_UP 1323 //30e-3s * fs
 #define INITIAL_DELAY_DOWN 4 //0.1e-3s * fs
 */
+
 // for Fs = 8000 Hz
 #define BUFFER_DEPTH 320 //40e-3s * fs
 #define DELAY_DEPTH_UP 96 //12e-3s * fs
 #define INITIAL_DELAY_UP 240 //30e-3s * fs
 #define INITIAL_DELAY_DOWN 1 //0.1e-3s * fs
+
+/*
+#define BUFFER_DEPTH 100 //40e-3s * fs
+#define DELAY_DEPTH_UP 50 //12e-3s * fs
+#define INITIAL_DELAY_UP 120 //30e-3s * fs
+#define INITIAL_DELAY_DOWN 1 //0.1e-3s * fs
+*/
+
 #define DELAY_DEPTH_DOWN INITIAL_DELAY_UP - DELAY_DEPTH_UP + INITIAL_DELAY_DOWN
 #define PI_HALF 1.5708
 

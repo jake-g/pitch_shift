@@ -163,19 +163,18 @@ int main(void) {
 	// set frequency
 	sampleFrequency = 0x000C; //8k
 	//sampleFrequency = 0x0019; //32k
-	//sampleFrequency = 0x0023; //44.1k
+//	sampleFrequency = 0x0023; //44.1k
 	//sampleFrequency = 0x0001; //48k
-	//aic23_demo[4] = 0x0014;
+	aic23_demo[4] = 0x0014;
 	aic23_demo[8] = sampleFrequency;
 	AIC23_demo();
 
 
-	memset(bufferA, 0, BUFFER_DEPTH);
-	memset(bufferB, 0, BUFFER_DEPTH);
+	memset(PING, 0, BUFF_SIZE);
+	memset(PONG, 0, BUFF_SIZE);
 
 	printf("float = %d, int = %d\n", sizeof(float), sizeof(int));
-//	float pitch_factor = 1.26;
-	float pitch_factor = 1.587;
+	float pitch_factor = 1.3;
 	while(1){
 		if (uartStartSendFlag) {
 			printf("UART SENT\n");

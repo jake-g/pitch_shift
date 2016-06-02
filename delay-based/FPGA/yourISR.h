@@ -15,11 +15,13 @@
 
 #include <string.h>
 #include "PitchShift.h"
+//#include "ola.h"
+
 #include "system_init.h"
 
 #define UART_BUFFER_SIZE 256
 // size for ping pong buffer
-#define BUFF_SIZE 64
+#define BUFF_SIZE 200
 
 void waitFor (unsigned int n) {
 	printf("Pausing %d iterations...", n);
@@ -53,6 +55,7 @@ extern alt_16 leftChannelData[BUFFERSIZE];
 extern alt_16 rightChannelData[BUFFERSIZE];
 extern int convResultBuffer[CONVBUFFSIZE];
 extern alt_16 datatest[UART_BUFFER_SIZE];
+
 /*uart-global
  * RxHead: integer indicator tells you the index of where the
  * newest char data you received from host computer
@@ -182,8 +185,8 @@ alt_16 signed2unsigned(int sign){
 }
 
 // ------------------------------------------------------
-short micBuffer1[BUFF_SIZE];
-short micBuffer2[BUFF_SIZE];
+int PONG[BUFF_SIZE]; // Transmit PING buffer
+int PING[BUFF_SIZE]; // Transmit PONG buffer
 
 int * playAndFillBuffer = NULL;
 int * processBuffer = NULL;
@@ -204,24 +207,25 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 
 		// Initialize ping pong pointers
 		if (playAndFillBuffer == NULL || processBuffer == NULL) {
-			playAndFillBuffer = bufferA;
-			processBuffer = bufferB;
+			playAndFillBuffer = PING;
+			processBuffer = PONG;
 		}
 
 		// play and fill operation
-		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
-		playAndFillBuffer[sampleIndex] = leftChannel;
+			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
+			playAndFillBuffer[sampleIndex] = leftChannel;
+
 
 		// index checking for input buffer ready
 		sampleIndex++;
 		if (sampleIndex == BUFF_SIZE) {
 			if (ptrStatus == 0) {
-				playAndFillBuffer = bufferB;
-				processBuffer = bufferA;
+				playAndFillBuffer = PONG;
+				processBuffer = PING;
 				ptrStatus = 1;
 			} else {
-				playAndFillBuffer = bufferA;
-				processBuffer = bufferB;
+				playAndFillBuffer = PING;
+				processBuffer = PONG;
 				ptrStatus = 0;
 			}
 
