@@ -15,8 +15,6 @@
 
 #include <string.h>
 #include "PitchShift.h"
-//#include "ola.h"
-
 #include "system_init.h"
 
 #define UART_BUFFER_SIZE 256
@@ -31,6 +29,7 @@ void waitFor (unsigned int n) {
 // ------------------------------------------------------
 int PONG[BUFF_SIZE]; // Transmit PING buffer
 int PING[BUFF_SIZE]; // Transmit PONG buffer
+int lastBuff[BUFF_SIZE]; // tmp buffer
 
 int * playAndFillBuffer = NULL;
 int * processBuffer = NULL;
@@ -208,13 +207,14 @@ alt_16 signed2unsigned(int sign){
 	return result;
 }
 
-
+int last_i = 0;
 static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 	volatile int* leftreadyptr = (volatile int *)context;
 	*leftreadyptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE);
 	IOWR_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE, 0);
 	 /*******Read, playback, store data*******/
 	if (input_ready == 0) {
+		last_i = BUFF_SIZE;
 		leftChannel = IORD_ALTERA_AVALON_PIO_DATA(LEFTDATA_BASE);
 
 		// Initialize ping pong pointers
@@ -225,6 +225,7 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 
 		// play and fill operation
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
+			lastBuff[sampleIndex] = playAndFillBuffer[sampleIndex];
 			playAndFillBuffer[sampleIndex] = leftChannel;
 
 
@@ -245,12 +246,16 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 			input_ready = 1;
 		}
 	} else {
-//		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
-		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 0);
-		iii = (iii + 1) % 1000;
-		if (iii == 1) {
-			printf("-----\n");
-		}
+		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 	lastBuff[last_i]);
+		last_i = (last_i + 1) % BUFF_SIZE;
+ ;
+//		sampleIndex++;
+//		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[iii]);
+//		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 0);
+//		iii = (iii + 1) % 1000;
+//		if (iii == 1) {
+//			printf("-----%d\n", lastBuff[last_i]);
+//		}
 	}
 }
 
@@ -265,7 +270,7 @@ static void handle_rightready_interrupt_test(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(RIGHTREADY_BASE, 0);
 	 /*******Read, playback, store data*******/
 	 rightChannel = IORD_ALTERA_AVALON_PIO_DATA(RIGHTDATA_BASE);
-	 //IOWR_ALTERA_AVALON_PIO_DATA(RIGHTSENDDATA_BASE, rightChannel);
+	 IOWR_ALTERA_AVALON_PIO_DATA(RIGHTSENDDATA_BASE, rightChannel);
 	 rightChannelData[rightCount] = rightChannel;
 	 rightCount = (rightCount+1) % BUFFERSIZE;
 	 /****************************************/

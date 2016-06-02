@@ -172,6 +172,8 @@ int main(void) {
 
 	memset(PING, 0, BUFF_SIZE);
 	memset(PONG, 0, BUFF_SIZE);
+	memset(lastBuff, 0, BUFF_SIZE);
+
 
 	printf("float = %d, int = %d\n", sizeof(float), sizeof(int));
 	while(1){

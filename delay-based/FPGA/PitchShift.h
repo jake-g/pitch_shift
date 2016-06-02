@@ -1,6 +1,7 @@
 #ifndef PitchShift_H_ /* Include guard */
 #define PitchShift_H_
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -17,12 +18,22 @@ void PitchShift(float pitch_factor, int* inbuf, int* outbuf);
 #define INITIAL_DELAY_DOWN 4 //0.1e-3s * fs
 */
 
-// for Fs = 8k Hz
-#define BUFF_SIZE 250 // 0.03s * fs
+/* B
+#define BUFF_SIZE 180 // 0.03s * fs
 #define BUFFER_DEPTH 882 //0.1s * fs
 #define DELAY_DEPTH_UP 264 //0.033s * fs
 #define INITIAL_DELAY_UP 661 //0.083s * fs
 #define INITIAL_DELAY_DOWN 4 //0.0005s * fs
+
+*/
+
+/*E*/
+// for Fs = 8k Hz
+#define BUFF_SIZE 256 // 0.03s * fs
+#define BUFFER_DEPTH 352 //40e-3s * fs
+#define DELAY_DEPTH_UP 96 //12e-3s * fs
+#define INITIAL_DELAY_UP 240 //30e-3s * fs
+#define INITIAL_DELAY_DOWN 4 //0.1e-3s * fs
 
 
 #define DELAY_DEPTH_DOWN INITIAL_DELAY_UP - DELAY_DEPTH_UP + INITIAL_DELAY_DOWN
@@ -38,9 +49,8 @@ int change_direction = 1; //change from pitch up to down and vice versa
 int Ga, Gb, crossfading, crossfadingAB, q;
 int bufferABptr, Aout, Bout, delaya, delayb;
 int pitch_shift_up = 0;
-float bufferAptr_float, bufferBptr_float;
+float pitch_shift_rate, bufferAptr_float, bufferBptr_float;
 int channel_feedback = 0;
-int pitch_shift_rate;
 
 void PitchShift(float pitch_factor, int* inbuf, int* outbuf) {
     int m, i, bufferAptr2_float, bufferBptr2_float;
@@ -51,9 +61,11 @@ void PitchShift(float pitch_factor, int* inbuf, int* outbuf) {
     	pitch_shift_up = 1;
     } else if (pitch_factor < 1){ // pitch DOWN
       pitch_shift_rate = 1 - pitch_factor;
+      pitch_shift_up = 0;
     } else {  // no change
       pitch_shift_rate = 0;
     }
+//    printf("f:%f\tp:%f\td:%d\n", pitch_factor, pitch_shift_rate, pitch_shift_up);
 
     if (change_direction == 1) {
         // Inits performed when first time for a pitch change directions
