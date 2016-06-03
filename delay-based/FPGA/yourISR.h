@@ -8,14 +8,6 @@
 
  */
 
-/* TODO
- * Switch for noise gate
- * Switch and keys for delay
- * Switch for loop
- * UART receive melody
- * UART send current pitch (for plot or something)
- * */
-
 #ifndef YOURISR_H_
 #define YOURISR_H_
 
@@ -25,7 +17,6 @@
 #include <math.h>
 
 #define UART_BUFFER_SIZE 256
-// size for ping pong buffer
 
 void waitFor (unsigned int n) {
 	printf("Pausing %d iterations...", n);
@@ -47,7 +38,6 @@ int * processBuffer = NULL;
 float pitch_factor = 1;
 int semitone = 0;
 
-
 // Counters
 int sampleIndex = 0;
 int last_i = 0;
@@ -59,12 +49,20 @@ short ptrStatus = 0;
 int semitoneFlag = 0;
 int melodyFlag = 0;
 
+// Switch configuration 
+int switchConfig = 0;
+// swtich 1 through 4 state:
+// later enabled switch overrides others
+int switchMask1_4 = 0; 
 // ------------------------------------------------------
 
 
 //Value for interrupt ID
 extern alt_u32 switch0_id;
 extern alt_u32 switch1_id;
+extern alt_u32 switch2_id;
+extern alt_u32 switch3_id;
+extern alt_u32 switch4_id;
 extern alt_u32 key0_id;
 extern alt_u32 key1_id;
 extern alt_u32 key2_id;
@@ -148,7 +146,53 @@ static void handle_switch1_interrupt(void* context, alt_u32 id) {
 	 /*Perform Jobs*/
 	 melodyFlag = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
 	 printf("Melody Toggle : %d\n", melodyFlag);
+	 
+	 // 0b0001
+	 switchMask1_4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
 }
+
+static void handle_switch2_interrupt(void* context, alt_u32 id) {
+	 volatile int* switch2ptr = (volatile int *)context;
+	 *switch2ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE);
+
+	 /* Write to the edge capture register to reset it. */
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE, 0);
+
+	 /*Perform Jobs*/
+	 printf("delay pitch enabled\n");
+	 
+	 // 0b0010
+	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE) << 1);
+}
+
+static void handle_switch3_interrupt(void* context, alt_u32 id) {
+	 volatile int* switch3ptr = (volatile int *)context;
+	 *switch3ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE);
+
+	 /* Write to the edge capture register to reset it. */
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE, 0);
+
+	 /*Perform Jobs*/
+	 printf("delay echo enabled\n");
+	 
+	 // 0b0100
+	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE) << 2);
+}
+
+static void handle_switch4_interrupt(void* context, alt_u32 id) {
+	 volatile int* switch4ptr = (volatile int *)context;
+	 *switch4ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE);
+
+	 /* Write to the edge capture register to reset it. */
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE, 0);
+
+	 /*Perform Jobs*/
+	 printf("Loop enabled\n");
+	 
+	 // 0b1000
+	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE) << 3);
+}
+
 
 // RESET PITCH
 static void handle_key0_interrupt(void* context, alt_u32 id) {
@@ -158,7 +202,6 @@ static void handle_key0_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
 
-//	 uartStartSendFlag = 1;
 	 pitch_factor = 1;
 	 semitone = 0;
 	 printf("Pitch Reset\n");
@@ -173,7 +216,6 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
 
-	 //IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH1_BASE, 0x01);
 	 if (pitch_factor <= 0) {
 		 printf("pitch_factor cannot be lower than 0\n");
 	 } else {
@@ -207,8 +249,7 @@ static void handle_key2_interrupt(void* context, alt_u32 id) {
 	 printf("Pitch increased to : %f\n", pitch_factor);
 }
 
-
-
+// UART send 
 static void handle_key3_interrupt(void* context, alt_u32 id) {
 	 volatile int* key3ptr = (volatile int *)context;
 	 *key3ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY3_BASE);
@@ -216,7 +257,11 @@ static void handle_key3_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY3_BASE, 0);
 
-	 IOWR_ALTERA_AVALON_PIO_DATA(LED_BASE, 0x10);
+	 switchConfig = 0;
+	 switchConfig = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
+	 switchConfig |= (switchMask1_4 << 1);
+
+	 uartStartSendFlag = 1;
 }
 
 /*  Detect left channel ready interrupt and do:

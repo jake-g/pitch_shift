@@ -23,6 +23,9 @@
 //Value for interrupt ID
 alt_u32 switch0_id = SWITCH0_IRQ;
 alt_u32 switch1_id = SWITCH1_IRQ;
+alt_u32 switch2_id = SWITCH2_IRQ;
+alt_u32 switch3_id = SWITCH3_IRQ;
+alt_u32 switch4_id = SWITCH4_IRQ;
 alt_u32 key0_id = KEY0_IRQ;
 alt_u32 key1_id = KEY1_IRQ;
 alt_u32 key2_id = KEY2_IRQ;
@@ -34,6 +37,9 @@ alt_u32 uart_id = UART_IRQ;
 /*Use for ISR registration*/
 volatile int switch0 = 0;
 volatile int switch1 = 0;
+volatile int switch2 = 0;
+volatile int switch3 = 0;
+volatile int switch4 = 0;
 volatile int key0 = 0;
 volatile int key1 = 0;
 volatile int key2 = 0;
@@ -111,6 +117,9 @@ void system_initialization(){
 	 //Interrupts Registrations
 	 alt_irq_register(switch0_id, (void *)&switch0, handle_switch0_interrupt);
 	 alt_irq_register(switch1_id, (void *)&switch1, handle_switch1_interrupt);
+	 alt_irq_register(switch1_id, (void *)&switch2, handle_switch2_interrupt);
+	 alt_irq_register(switch1_id, (void *)&switch3, handle_switch3_interrupt);
+	 alt_irq_register(switch1_id, (void *)&switch4, handle_switch4_interrupt);
 	 alt_irq_register(key0_id, (void *)&key0, handle_key0_interrupt);
 	 alt_irq_register(key1_id, (void *)&key1, handle_key1_interrupt);
 	 alt_irq_register(key2_id, (void *)&key2, handle_key2_interrupt);
@@ -121,6 +130,9 @@ void system_initialization(){
 	 /*Interrupt enable -> mask to enable it*/
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH0_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH1_BASE, 1);
+	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH2_BASE, 1);
+	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH3_BASE, 1);
+	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH4_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY0_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY1_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY2_BASE, 1);
@@ -131,6 +143,9 @@ void system_initialization(){
 	 /*Reset edge capture bit*/
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH0_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH1_BASE, 0);
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE, 0);
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE, 0);
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
@@ -189,10 +204,15 @@ int main(void) {
 	while(1){
 		if (uartStartSendFlag) {
 			printf("UART SENT\n");
+			uart_sendInt16((int) (pitch_factor * 1000));
+			// switch config format in binary representation: 
+			// 0b[switch4,switch3,switch2,switch1,switch0]
+			uart_sendInt16(switchConfig);
 			uartStartSendFlag = 0;
 		}
+		
+		
 		if (input_ready) {
-
 			// Play melody
 			if (melodyFlag == 1) {
 				if (lp == 0) {  // Change to next note
