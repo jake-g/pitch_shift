@@ -89,8 +89,6 @@ int sr = 0;
 
 /*0->do not update sampling frequency*/
 /*1->ok, update sampling frequency to AIC23*/
-int setFreqFlag = 0;
-
 /*uart object*/
 int uart;
 
@@ -176,12 +174,34 @@ int main(void) {
 
 
 	printf("float = %d, int = %d\n", sizeof(float), sizeof(int));
+	/* Melody Settings*/
+	// TODO MAKE HEADER FOR THIS AND TO CALL MELODY IN MAIN
+	#define melLength 8
+	int melody[melLength] = {0, 4, 7, 12, 4, 0, -7, -4}; // semitones to play
+	int b = 0;  // index for melody arr current beat
+	int melodyLoop = 10; // period between note change
+	int lp = 0; // loop counter
+
+
+	// Main loop
 	while(1){
 		if (uartStartSendFlag) {
 			printf("UART SENT\n");
 			uartStartSendFlag = 0;
 		}
 		if (input_ready) {
+
+			// Play melody
+			if (melodyFlag == 1) {
+				if (lp == 0) {  // Change to next note
+					pitch_factor = pow(2, melody[b]/12.0);
+					 printf("Pitch Factor : %f, Semitone: %d\n", pitch_factor, melody[b]);
+					b = (b + 1) % melLength;
+				}
+				lp = (lp + 1) % melodyLoop;
+			}
+
+			// Process Pitch Shift
 			PitchShift(pitch_factor, processBuffer, processBuffer);
 			input_ready = 0;
 		}

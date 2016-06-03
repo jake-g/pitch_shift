@@ -16,6 +16,7 @@
 #include <string.h>
 #include "PitchShift.h"
 #include "system_init.h"
+#include <math.h>
 
 #define UART_BUFFER_SIZE 256
 // size for ping pong buffer
@@ -27,20 +28,31 @@ void waitFor (unsigned int n) {
 	printf("Finished\n");
 }
 // ------------------------------------------------------
+// Buffers
 int PONG[BUFF_SIZE]; // Transmit PING buffer
 int PING[BUFF_SIZE]; // Transmit PONG buffer
 int lastBuff[BUFF_SIZE]; // tmp buffer
 
+// Pointers
 int * playAndFillBuffer = NULL;
 int * processBuffer = NULL;
-int sampleIndex = 0;
-int input_ready = 0;
 
-short ptrStatus = 0;
-
+// Settings
 float pitch_factor = 1;
+int semitone = 0;
 
+
+// Counters
+int sampleIndex = 0;
+int last_i = 0;
 int iii = 0;
+
+// Flags
+int input_ready = 0;
+short ptrStatus = 0;
+int semitoneFlag = 0;
+int melodyFlag = 0;
+
 // ------------------------------------------------------
 
 
@@ -99,13 +111,12 @@ extern int uartStartRecvFlag;
 /*for uart receive purpose*/
 extern int sr;
 
-/*0->do not update sampling frequency*/
-/*1->ok, update sampling frequency to AIC23*/
-extern int setFreqFlag;
 
 /*uart object*/
 extern int uart;
 
+
+// TOGGLE SEMITONE
 static void handle_switch0_interrupt(void* context, alt_u32 id) {
 	 volatile int* switch0ptr = (volatile int *)context;
 	 *switch0ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH0_BASE);
@@ -114,9 +125,13 @@ static void handle_switch0_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH0_BASE, 0);
 
 	 /*Perform Jobs*/
-	 alt_irq_enable(leftready_id);
+//	 alt_irq_enable(leftready_id);
+	 semitoneFlag = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
+	 printf("Semitone Toggle : %d\n", semitoneFlag);
 }
 
+
+// TOGGLE MELODY
 static void handle_switch1_interrupt(void* context, alt_u32 id) {
 	 volatile int* switch1ptr = (volatile int *)context;
 	 *switch1ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH1_BASE);
@@ -125,11 +140,11 @@ static void handle_switch1_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH1_BASE, 0);
 
 	 /*Perform Jobs*/
+	 melodyFlag = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
+	 printf("Melody Toggle : %d\n", melodyFlag);
 }
 
-/* Enable the flag to send recent
- * channel buffer to host computer.
- */
+// RESET PITCH
 static void handle_key0_interrupt(void* context, alt_u32 id) {
 	 volatile int* key0ptr = (volatile int *)context;
 	 *key0ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE);
@@ -137,14 +152,14 @@ static void handle_key0_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
 
-	 uartStartSendFlag = 1;
+//	 uartStartSendFlag = 1;
 	 pitch_factor = 1;
-	 printf("pitch_factor set to 0\n");
+	 semitone = 0;
+	 printf("Pitch Reset\n");
 }
 
-/* Enable the flag to update the
- * ADC sampling frequency on AIC23.
- */
+
+// PITCH DOWN
 static void handle_key1_interrupt(void* context, alt_u32 id) {
 	 volatile int* key1ptr = (volatile int *)context;
 	 *key1ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE);
@@ -153,24 +168,40 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
 
 	 //IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH1_BASE, 0x01);
-	 setFreqFlag = 1;
 	 if (pitch_factor <= 0) {
 		 printf("pitch_factor cannot be lower than 0\n");
 	 } else {
-		 pitch_factor = pitch_factor - 0.1;
-		 printf("pitch_factor decreased to %f\n", pitch_factor);
+		 if (semitoneFlag == 1) {
+			 semitone--;
+			 printf("Current Semitone : %d, ", semitone);
+			 pitch_factor = pow(2, semitone/12.0);
+		 } else {
+			 pitch_factor = pitch_factor - 0.1;
+		 }
+		 printf("Pitch decreased to : %f\n", pitch_factor);
+
 	 }
 }
 
+
+// PITCH UP
 static void handle_key2_interrupt(void* context, alt_u32 id) {
 	 volatile int* key2ptr = (volatile int *)context;
 	 *key2ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE);
 
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
-	 pitch_factor = pitch_factor + 0.1;
-	 printf("pitch_factor increased to %f\n", pitch_factor);
+	 if (semitoneFlag == 1) {
+		 semitone++;
+		 printf("Current Semitone : %d\t", semitone);
+		 pitch_factor = pow(2, semitone/12.0);
+	 } else {
+		 pitch_factor = pitch_factor + 0.1;
+	 }
+	 printf("Pitch increased to : %f\n", pitch_factor);
 }
+
+
 
 static void handle_key3_interrupt(void* context, alt_u32 id) {
 	 volatile int* key3ptr = (volatile int *)context;
@@ -207,7 +238,6 @@ alt_16 signed2unsigned(int sign){
 	return result;
 }
 
-int last_i = 0;
 static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 	volatile int* leftreadyptr = (volatile int *)context;
 	*leftreadyptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE);
@@ -246,6 +276,7 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 			input_ready = 1;
 		}
 	} else {
+		// Play back last buffer while waiting for processing
 		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 	lastBuff[last_i]);
 		last_i = (last_i + 1) % BUFF_SIZE;
  ;
