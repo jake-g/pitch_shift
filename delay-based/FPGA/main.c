@@ -161,9 +161,9 @@ int main(void) {
 	// set frequency
 	sampleFrequency = 0x000C; //8k
 	//sampleFrequency = 0x0019; //32k
-//	sampleFrequency = 0x0023; //44.1k
+	//sampleFrequency = 0x0023; //44.1k
 	//sampleFrequency = 0x0001; //48k
-	aic23_demo[4] = 0x0014;
+	//aic23_demo[4] = 0x0014;
 	aic23_demo[8] = sampleFrequency;
 	AIC23_demo();
 
@@ -176,8 +176,10 @@ int main(void) {
 	printf("float = %d, int = %d\n", sizeof(float), sizeof(int));
 	/* Melody Settings*/
 	// TODO MAKE HEADER FOR THIS AND TO CALL MELODY IN MAIN
-	#define melLength 8
-	int melody[melLength] = {0, 4, 7, 12, 4, 0, -7, -4}; // semitones to play
+//	#define melLength 8
+#define melLength 25
+//	int melody[melLength] = {0, 4, 7, 12, 4, 0, -7, -4}; // semitones to play
+	int melody[melLength] = {4,2,0,2,4,4,4,2,2,2,4,4,4,4,2,0,2,4,4,4,2,2,4,2,0}; // semitones to play
 	int b = 0;  // index for melody arr current beat
 	int melodyLoop = 10; // period between note change
 	int lp = 0; // loop counter

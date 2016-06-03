@@ -5,10 +5,16 @@
 /*
  * yourISR.h
  *
- *  Created on: Mar 11, 2014
- *      Author: zhwj814
- *  Updated on : Mar 31, 2015 by jsup517
+
  */
+
+/* TODO
+ * Switch for noise gate
+ * Switch and keys for delay
+ * Switch for loop
+ * UART receive melody
+ * UART send current pitch (for plot or something)
+ * */
 
 #ifndef YOURISR_H_
 #define YOURISR_H_
@@ -254,9 +260,9 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 		}
 
 		// play and fill operation
-			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
-			lastBuff[sampleIndex] = playAndFillBuffer[sampleIndex];
-			playAndFillBuffer[sampleIndex] = leftChannel;
+		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
+		lastBuff[sampleIndex] = playAndFillBuffer[sampleIndex];
+		playAndFillBuffer[sampleIndex] = leftChannel;
 
 
 		// index checking for input buffer ready
@@ -279,7 +285,6 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 		// Play back last buffer while waiting for processing
 		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 	lastBuff[last_i]);
 		last_i = (last_i + 1) % BUFF_SIZE;
- ;
 //		sampleIndex++;
 //		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[iii]);
 //		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 0);
