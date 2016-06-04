@@ -117,9 +117,9 @@ void system_initialization(){
 	 //Interrupts Registrations
 	 alt_irq_register(switch0_id, (void *)&switch0, handle_switch0_interrupt);
 	 alt_irq_register(switch1_id, (void *)&switch1, handle_switch1_interrupt);
-	 alt_irq_register(switch1_id, (void *)&switch2, handle_switch2_interrupt);
-	 alt_irq_register(switch1_id, (void *)&switch3, handle_switch3_interrupt);
-	 alt_irq_register(switch1_id, (void *)&switch4, handle_switch4_interrupt);
+	 alt_irq_register(switch2_id, (void *)&switch2, handle_switch2_interrupt);
+	 alt_irq_register(switch3_id, (void *)&switch3, handle_switch3_interrupt);
+	 alt_irq_register(switch4_id, (void *)&switch4, handle_switch4_interrupt);
 	 alt_irq_register(key0_id, (void *)&key0, handle_key0_interrupt);
 	 alt_irq_register(key1_id, (void *)&key1, handle_key1_interrupt);
 	 alt_irq_register(key2_id, (void *)&key2, handle_key2_interrupt);
@@ -205,13 +205,13 @@ int main(void) {
 		if (uartStartSendFlag) {
 			printf("UART SENT\n");
 			uart_sendInt16((int) (pitch_factor * 1000));
-			// switch config format in binary representation: 
+			// switch config format in binary representation:
 			// 0b[switch4,switch3,switch2,switch1,switch0]
 			uart_sendInt16(switchConfig);
 			uartStartSendFlag = 0;
 		}
-		
-		
+
+
 		if (input_ready) {
 			// Play melody
 			if (melodyFlag == 1) {

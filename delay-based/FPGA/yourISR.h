@@ -49,11 +49,11 @@ short ptrStatus = 0;
 int semitoneFlag = 0;
 int melodyFlag = 0;
 
-// Switch configuration 
+// Switch configuration
 int switchConfig = 0;
 // swtich 1 through 4 state:
 // later enabled switch overrides others
-int switchMask1_4 = 0; 
+int switchMask1_4 = 0;
 // ------------------------------------------------------
 
 
@@ -146,9 +146,10 @@ static void handle_switch1_interrupt(void* context, alt_u32 id) {
 	 /*Perform Jobs*/
 	 melodyFlag = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
 	 printf("Melody Toggle : %d\n", melodyFlag);
-	 
+
 	 // 0b0001
 	 switchMask1_4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
+	 printf("mask = %d\n", switchMask1_4);
 }
 
 static void handle_switch2_interrupt(void* context, alt_u32 id) {
@@ -159,10 +160,11 @@ static void handle_switch2_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE, 0);
 
 	 /*Perform Jobs*/
-	 printf("delay pitch enabled\n");
-	 
+	 printf("delay pitch toggled\n");
+
 	 // 0b0010
-	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE) << 1);
+	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH2_BASE) << 1);
+	 printf("mask = %d\n", switchMask1_4);
 }
 
 static void handle_switch3_interrupt(void* context, alt_u32 id) {
@@ -173,10 +175,11 @@ static void handle_switch3_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE, 0);
 
 	 /*Perform Jobs*/
-	 printf("delay echo enabled\n");
-	 
+	 printf("delay echo toggled\n");
+
 	 // 0b0100
-	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE) << 2);
+	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE) << 2);
+	 printf("mask = %d\n", switchMask1_4);
 }
 
 static void handle_switch4_interrupt(void* context, alt_u32 id) {
@@ -187,10 +190,11 @@ static void handle_switch4_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE, 0);
 
 	 /*Perform Jobs*/
-	 printf("Loop enabled\n");
-	 
+	 printf("Loop toggled\n");
+
 	 // 0b1000
-	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE) << 3);
+	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH4_BASE) << 3);
+	 printf("mask = %d\n", switchMask1_4);
 }
 
 
@@ -249,7 +253,7 @@ static void handle_key2_interrupt(void* context, alt_u32 id) {
 	 printf("Pitch increased to : %f\n", pitch_factor);
 }
 
-// UART send 
+// UART send
 static void handle_key3_interrupt(void* context, alt_u32 id) {
 	 volatile int* key3ptr = (volatile int *)context;
 	 *key3ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY3_BASE);
