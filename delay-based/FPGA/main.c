@@ -204,7 +204,7 @@ int main(void) {
 	while(1){
 		if (uartStartSendFlag) {
 			printf("UART SENT\n");
-			uart_sendInt16((int) (pitch_factor * 1000));
+			uart_sendInt16((int) (pitch_factor * 10000));
 			// switch config format in binary representation:
 			// 0b[switch4,switch3,switch2,switch1,switch0]
 			uart_sendInt16(switchConfig);

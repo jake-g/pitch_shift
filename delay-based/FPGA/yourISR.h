@@ -261,9 +261,10 @@ static void handle_key3_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY3_BASE, 0);
 
-	 switchConfig = 0;
-	 switchConfig = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
-	 switchConfig |= (switchMask1_4 << 1);
+//	 switchConfig = 0;
+//	 switchConfig = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
+//	 switchConfig |= (switchMask1_4 << 1);
+	 switchConfig = switchMask1_4;
 
 	 uartStartSendFlag = 1;
 }
