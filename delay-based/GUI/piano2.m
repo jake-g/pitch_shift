@@ -407,7 +407,8 @@ PlayNote(handles,freq);
 function PlayNote(handles,freq)
 % plays the note that was pressed for 1 second
 % also sets the frequency value on GUI for last played note.
-semitone = freq/handles.KeyValue;
+factor = freq/handles.KeyValue;
+semitone = round(log2(factor)*12);
 set(handles.STFreqValue, 'String', num2str(freq));
 set(handles.STSemiValue, 'String', num2str(semitone));
 
@@ -435,10 +436,10 @@ if RecordOn == 1
   Melody = handles.Melody;
   if SoundVectorLong == 0
     SoundVectorLong = soundVector;
-    Melody = [Samps, semitone];
+    Melody = [Samps, factor];
   else
     SoundVectorLong = cat(2, SoundVectorLong, soundVector);
-    Melody = cat(2, Melody, [Samps, semitone]);
+    Melody = cat(2, Melody, [Samps, factor]);
 
   end
   handles.SoundVector = SoundVectorLong;
@@ -542,15 +543,15 @@ COM = ['COM',get(handles.comPort, 'String')];
 s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
 set(s,'InputBufferSize',20000); % set the size of input buffer
 handles.serial = s;
-
-LastNote     = get(handles.STSemiValue, 'String')
+LastSemi = str2num(get(handles.STSemiValue, 'String'))
+LastNote     = 2^(LastSemi/12)
 if LastNote == 0
     return;
 else  % send over UART
     disp('Sending Note...')
     LastNote  % temp print for now
     fopen(s);
-    fwrite(s, Melody);
+    fwrite(s, LastNote);
     fclose(s);
 end
 
