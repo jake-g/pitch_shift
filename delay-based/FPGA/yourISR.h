@@ -5,7 +5,6 @@
 /*
  * yourISR.h
  *
-
  */
 
 #ifndef YOURISR_H_
@@ -13,10 +12,11 @@
 
 #include <string.h>
 #include "PitchShift.h"
+#include "echo.h"
 #include "system_init.h"
 #include <math.h>
 
-#define UART_BUFFER_SIZE 256
+#define UART_BUFFER_SIZE 1
 
 void waitFor (unsigned int n) {
 	printf("Pausing %d iterations...", n);
@@ -50,7 +50,6 @@ int semitoneFlag = 0;
 int melodyFlag = 0;
 
 // Switch configuration
-int switchConfig = 0;
 // swtich 1 through 4 state:
 // later enabled switch overrides others
 int switchMask1_4 = 0;
@@ -177,6 +176,7 @@ static void handle_switch3_interrupt(void* context, alt_u32 id) {
 	 /*Perform Jobs*/
 	 printf("delay echo toggled\n");
 
+	 switch3Status = IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE);
 	 // 0b0100
 	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE) << 2);
 	 printf("mask = %d\n", switchMask1_4);
@@ -235,7 +235,6 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 	 }
 }
 
-
 // PITCH UP
 static void handle_key2_interrupt(void* context, alt_u32 id) {
 	 volatile int* key2ptr = (volatile int *)context;
@@ -260,11 +259,6 @@ static void handle_key3_interrupt(void* context, alt_u32 id) {
 
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY3_BASE, 0);
-
-//	 switchConfig = 0;
-//	 switchConfig = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
-//	 switchConfig |= (switchMask1_4 << 1);
-	 switchConfig = switchMask1_4;
 
 	 uartStartSendFlag = 1;
 }
@@ -298,7 +292,7 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 	volatile int* leftreadyptr = (volatile int *)context;
 	*leftreadyptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE);
 	IOWR_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE, 0);
-	 /*******Read, playback, store data*******/
+	/*******Read, playback, store data*******/
 	if (input_ready == 0) {
 		last_i = BUFF_SIZE;
 		leftChannel = IORD_ALTERA_AVALON_PIO_DATA(LEFTDATA_BASE);
@@ -309,8 +303,18 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 			processBuffer = PONG;
 		}
 
+		// -------------- ECHO ------------------
+		int x_t = getEchoSample() + playAndFillBuffer[sampleIndex];
+		delayedBuffer[delayIndex] = x_t;
+		delayIndex = (delayIndex + 1) % DELAY_BUFFER_LENGTH;
+		// --------------------------------------
+
 		// play and fill operation
-		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
+		if (switch3Status) {
+			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, x_t);
+		} else {
+			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
+		}
 		lastBuff[sampleIndex] = playAndFillBuffer[sampleIndex];
 		playAndFillBuffer[sampleIndex] = leftChannel;
 
@@ -333,15 +337,8 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 		}
 	} else {
 		// Play back last buffer while waiting for processing
-		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 	lastBuff[last_i]);
+		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, lastBuff[last_i]);
 		last_i = (last_i + 1) % BUFF_SIZE;
-//		sampleIndex++;
-//		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[iii]);
-//		IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, 0);
-//		iii = (iii + 1) % 1000;
-//		if (iii == 1) {
-//			printf("-----%d\n", lastBuff[last_i]);
-//		}
 	}
 }
 

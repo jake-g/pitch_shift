@@ -207,7 +207,7 @@ int main(void) {
 			uart_sendInt16((int) (pitch_factor * 10000));
 			// switch config format in binary representation:
 			// 0b[switch4,switch3,switch2,switch1,switch0]
-			uart_sendInt16(switchConfig);
+			uart_sendInt16(switchMask1_4);
 			uartStartSendFlag = 0;
 		}
 
