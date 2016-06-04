@@ -22,7 +22,7 @@ function varargout = piano2(varargin)
 
 % Edit the above text to modify the response to help piano2
 
-% Last Modified by GUIDE v2.5 03-Jun-2016 21:48:36
+% Last Modified by GUIDE v2.5 04-Jun-2016 13:50:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -58,7 +58,6 @@ handles.output      = hObject;
 handles.SampleRate  = 1/20000;
 handles.SoundVector = 0;
 handles.Melody = 0;
-% handles.Semitone = 0;
 handles.TimeValue   = 0.3488;
 handles.KeyValue = 261.625;
 
@@ -408,11 +407,9 @@ PlayNote(handles,freq);
 function PlayNote(handles,freq)
 % plays the note that was pressed for 1 second
 % also sets the frequency value on GUI for last played note.
-
 semitone = freq/handles.KeyValue;
 set(handles.STFreqValue, 'String', num2str(freq));
 set(handles.STSemiValue, 'String', num2str(semitone));
-handles.Semitone = semitone;
 
 SampleRate  = handles.SampleRate;
 TimeValue   = handles.TimeValue;
@@ -514,25 +511,87 @@ function SendMelody_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-Melody     = handles.Melody;
+% COM Init
+delete(instrfindall);
+COM = ['COM',get(handles.comPort, 'String')];
+s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
+set(s,'InputBufferSize',20000); % set the size of input buffer
+handles.serial = s;
 
+Melody     = handles.Melody;
 if Melody == 0
     return;
 else  % send over UART
+    disp('Sending Melody...')
     Melody  % temp print for now
+    fopen(s);
+    fwrite(s, Melody);
+    fclose(s);
 end
+
 
 % --- Executes on button press in Send Melody.
 function SendNote_Callback(hObject, eventdata, handles)
 % hObject    handle to OutToWav (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-LastNote     = handles.Semitone; % NEED TO DEBUG
-% if LastNote == 0
-%     return;
-% else  % send over UART
-%     LastNote  % temp print for now
-% end
+
+% COM Init
+delete(instrfindall);
+COM = ['COM',get(handles.comPort, 'String')];
+s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
+set(s,'InputBufferSize',20000); % set the size of input buffer
+handles.serial = s;
+
+LastNote     = get(handles.STSemiValue, 'String')
+if LastNote == 0
+    return;
+else  % send over UART
+    disp('Sending Note...')
+    LastNote  % temp print for now
+    fopen(s);
+    fwrite(s, Melody);
+    fclose(s);
+end
+
+% --- Executes on button press in RecieveData.
+function RecieveData_Callback(hObject, eventdata, handles)
+% hObject    handle to RecieveData (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Init COM
+delete(instrfindall);
+COM = ['COM',get(handles.comPort, 'String')];
+s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
+set(s,'InputBufferSize',20000); % set the size of input buffer
+fopen(s); % get ready to receive the data
+buffersize = 2; % set the size of instant read of buffer
+
+% Listen
+buffer = fread(s,buffersize, 'int16'); % read the buffer when data arrive
+pInt = buffer(1);  
+sw = buffer(2)
+pitch = pInt/10000;
+semitone = round(log2(pitch)*12);
+set(handles.STCurrValue, 'String', num2str(semitone));
+
+% Switch Status
+switch sw
+    case 1
+        set(handles.SWmelody,'Value', 1)
+    case 2
+        set(handles.SWecho,'Value', 1)
+    case 4
+        set(handles.SWpitch,'Value', 1)
+    case 8
+        set(handles.SWloop,'Value', 1)
+    otherwise
+        set(handles.SWnone,'Value', 1)
+end
+
+fclose(s);
+
 
 % --- Executes on button press in QuarterNote.
 function QuarterNote_Callback(hObject, eventdata, handles)
@@ -683,18 +742,18 @@ function pushbutton55_Callback(hObject, eventdata, handles)
 
 
 
-function edit4_Callback(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
+function comPort_Callback(hObject, eventdata, handles)
+% hObject    handle to comPort (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Hints: get(hObject,'String') returns contents of edit4 as text
-%        str2double(get(hObject,'String')) returns contents of edit4 as a double
+% Hints: get(hObject,'String') returns contents of comPort as text
+%        str2double(get(hObject,'String')) returns contents of comPort as a double
 
 
 % --- Executes during object creation, after setting all properties.
-function edit4_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to edit4 (see GCBO)
+function comPort_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to comPort (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -703,3 +762,48 @@ function edit4_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in SWmelody.
+function SWmelody_Callback(hObject, eventdata, handles)
+% hObject    handle to SWmelody (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% get(hObject,'Value')
+% Hint: get(hObject,'Value') returns toggle state of SWmelody
+
+
+% --- Executes on button press in SWecho.
+function SWecho_Callback(hObject, eventdata, handles)
+% hObject    handle to SWecho (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of SWecho
+
+
+% --- Executes on button press in SWpitch.
+function SWpitch_Callback(hObject, eventdata, handles)
+% hObject    handle to SWpitch (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of SWpitch
+
+
+% --- Executes on button press in SWloop.
+function SWloop_Callback(hObject, eventdata, handles)
+% hObject    handle to SWloop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of SWloop
+
+
+% --- Executes on button press in SWnone.
+function SWnone_Callback(hObject, eventdata, handles)
+% hObject    handle to SWnone (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of SWnone
