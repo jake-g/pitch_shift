@@ -1,8 +1,6 @@
 #ifndef ECHO_H
 #define ECHO_H
 
-#include "PitchShift.h"
-
 #define MAX_DELAY 1000
 #define MIN_DELAY 0
 #define BUFFER_LENGTH 4000
