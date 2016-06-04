@@ -208,17 +208,23 @@ static void handle_key0_interrupt(void* context, alt_u32 id) {
 
 	 pitch_factor = 1;
 	 semitone = 0;
-	 printf("Pitch Reset\n");
+	 sampleDelay = MIN_DELAY;
+	 printf("Pitch Reset, delay reset\n");
 }
 
 
-// PITCH DOWN
+// PITCH DOWN OR DELAY DOWN
 static void handle_key1_interrupt(void* context, alt_u32 id) {
 	 volatile int* key1ptr = (volatile int *)context;
 	 *key1ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE);
 
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
+
+	 // If echo mode, then delay down
+	 if (switch3Status) {
+		 changeDelay(-1);
+	 } else {
 
 	 if (pitch_factor <= 0) {
 		 printf("pitch_factor cannot be lower than 0\n");
@@ -233,15 +239,23 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 		 printf("Pitch decreased to : %f\n", pitch_factor);
 
 	 }
+
+	 }
 }
 
-// PITCH UP
+// PITCH UP OR DELAY UP
 static void handle_key2_interrupt(void* context, alt_u32 id) {
 	 volatile int* key2ptr = (volatile int *)context;
 	 *key2ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE);
 
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
+
+	 // If echo mode, then delay up
+	 if (switch3Status) {
+		 changeDelay(1);
+	 } else {
+
 	 if (semitoneFlag == 1) {
 		 semitone++;
 		 printf("Current Semitone : %d\t", semitone);
@@ -250,6 +264,8 @@ static void handle_key2_interrupt(void* context, alt_u32 id) {
 		 pitch_factor = pitch_factor + 0.1;
 	 }
 	 printf("Pitch increased to : %f\n", pitch_factor);
+
+	 }
 }
 
 // UART send
@@ -269,7 +285,6 @@ static void handle_key3_interrupt(void* context, alt_u32 id) {
  *  instantly play back.
  *
  */
-
 int unsigned2signed(alt_16 unsign){
 	int result;
 	if(unsign>32767)
@@ -310,6 +325,7 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 		// --------------------------------------
 
 		// play and fill operation
+		// - decide which sample to play: choose from delay buffer and playAndFillBuffer
 		if (switch3Status) {
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, x_t);
 		} else {
