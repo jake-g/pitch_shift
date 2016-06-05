@@ -12,6 +12,7 @@
 
 /*Major header file includes all system function you need*/
 #include "system_init.h"
+#include "uart.h"
 
 /*The header file where you store your ISR*/
 #include "yourISR.h"
@@ -186,9 +187,12 @@ int main(void) {
 	memset(PING, 0, BUFF_SIZE);
 	memset(PONG, 0, BUFF_SIZE);
 	memset(lastBuff, 0, BUFF_SIZE);
+	prevSw0 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
+	prevSw1 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
+	prevSw2 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH2_BASE);
+	prevSw3 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE);
+	prevSw4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH4_BASE);
 
-
-	printf("float = %d, int = %d\n", sizeof(float), sizeof(int));
 	/* Melody Settings*/
 	// TODO MAKE HEADER FOR THIS AND TO CALL MELODY IN MAIN
 //	#define melLength 8
