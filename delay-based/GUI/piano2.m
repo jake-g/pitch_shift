@@ -551,8 +551,10 @@ else  % send over UART
     disp('Sending Note...')
     LastNote  % temp print for now
     fopen(s);
-    fwrite(s, LastNote);
-    fclose(s);
+    %fwrite(s, LastNote);
+    fwrite(s, 'FEW');
+    fclose(s); 
+    delete(s);
 end
 
 % --- Executes on button press in RecieveData.
