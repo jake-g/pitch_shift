@@ -334,7 +334,7 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 		// switch4 to control loop mode
 		if ((switchMask1_4 == 0b0001) ||
 			(switchMask1_4 == 0b0010) ||
-			(switchMask1_4 == 0b1000)) {
+			(switchMask1_4 == 0b0100)) {
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, x_t);
 		} else {
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
