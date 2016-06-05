@@ -4,8 +4,11 @@
 #define MAX_DELAY 2000
 #define MIN_DELAY 1000
 #define DELAY_BUFFER_LENGTH 5000
-#define MIN_PITCH_RATE 0.5
-#define MAX_PITCH_RATE 0.1
+
+#define MAX_PITCH 4 // two octaves up
+#define MIN_PITCH 0
+#define MAX_PITCH_RATE (0.3)
+#define MIN_PITCH_RATE (-0.3)
 
 // Decay rate
 float gain = 0.6;
@@ -13,8 +16,11 @@ float gain = 0.6;
 // Current delay
 int sampleDelay = MIN_DELAY;
 
+// Current pitch factor
+float pitch_factor = 1;
+
 // Current pitch change rate
-float pitchChangeRate = MIN_PITCH_RATE;
+float pitchChangeRate = 0.1;
 
 // The rate of changing delay in echo mode. The number of samples
 // to increment/decrement in every key press.
@@ -40,11 +46,40 @@ void changeDelay(short sign) {
 	printf("sampleDelay = %d\n", sampleDelay);
 }
 
-// called 
+// returns echo sample
 int getEchoSample() {
 	if (sampleDelay == 0) {
 		return 0;
 	}
 	return gain * delayedBuffer[(DELAY_BUFFER_LENGTH + delayIndex - sampleDelay) % DELAY_BUFFER_LENGTH];
+}
+
+// Manages pitchChangeRate. Called from key interrupts.
+// Changes pitch rate by 0.1
+// How rate of pitch change changes. 
+void changePitchRate(short sign) {
+	pitchChangeRate = pitchChangeRate + sign * 0.1;
+	if (pitchChangeRate < MIN_PITCH_RATE) {
+		pitchChangeRate = MIN_PITCH_RATE;
+	} else if (pitchChangeRate > MAX_PITCH_RATE) {
+		pitchChangeRate = MAX_PITCH_RATE;
+	}
+	printf("pitchChangeRate = %f\n", pitchChangeRate);
+}
+
+// Manages pitch_factor. Called after every 5000 sample had been processed.
+void changePitch() {
+	// in pitch_factor range [0, 0.1], increment/decrement is 0.01
+	if (pitch_factor <= 0.1) {
+		pitch_factor = pitch_factor + pitchChangeRate / 10;
+	} else {
+		pitch_factor = pitch_factor + pitchChangeRate;
+	}
+	// wrap around pitch_factor from MIN to MAX, MAX to MIN
+	if (pitch_factor < MIN_PITCH) {
+		pitch_factor = MAX_PITCH;
+	} else if (pitch_factor > MAX_PITCH) {
+		pitch_factor = MIN_PITCH;
+	}
 }
 #endif /* ECHO_H */

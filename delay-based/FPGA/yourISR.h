@@ -35,7 +35,7 @@ int * playAndFillBuffer = NULL;
 int * processBuffer = NULL;
 
 // Settings
-float pitch_factor = 1;
+// float pitch_factor = 1;
 int semitone = 0;
 
 // Counters
@@ -226,7 +226,7 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
 
 	 if (switchMask1_4 == 0b0010) {
-		 printf("pitch rate change\n");
+		 changePitchRate(-1);
 	 } else if (switchMask1_4 == 0b0100) {
 		 changeDelay(-1);
 	 } else {
@@ -255,7 +255,7 @@ static void handle_key2_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
 
 	 if (switchMask1_4 == 0b0010) {
-		 printf("pitch rate change\n");
+		 changePitchRate(1);
 	 } else if (switchMask1_4 == 0b0100) {
 		 changeDelay(1);
 	 } else {
@@ -321,9 +321,14 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 		}
 
 		// -------------- ECHO ------------------
+		if (switchMask1_4 == 0b0010 && delayIndex == 0) {
+			// pitch changing echo changes pitch every 5000 samples
+			changePitch();
+		}
 		int x_t = getEchoSample() + playAndFillBuffer[sampleIndex];
 		delayedBuffer[delayIndex] = x_t;
 		delayIndex = (delayIndex + 1) % DELAY_BUFFER_LENGTH;
+		
 		// --------------------------------------
 
 		// play and fill operation
