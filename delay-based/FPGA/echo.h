@@ -56,7 +56,7 @@ int getEchoSample() {
 
 // Manages pitchChangeRate. Called from key interrupts.
 // Changes pitch rate by 0.1
-// How rate of pitch change changes. 
+// How rate of pitch change changes.
 void changePitchRate(short sign) {
 	pitchChangeRate = pitchChangeRate + sign * 0.1;
 	if (pitchChangeRate < MIN_PITCH_RATE) {
@@ -64,7 +64,7 @@ void changePitchRate(short sign) {
 	} else if (pitchChangeRate > MAX_PITCH_RATE) {
 		pitchChangeRate = MAX_PITCH_RATE;
 	}
-	printf("pitchChangeRate = %f\n", pitchChangeRate);
+	printf("pitchChangeRate = %.3f\n", pitchChangeRate);
 }
 
 // Manages pitch_factor. Called after every 5000 sample had been processed.

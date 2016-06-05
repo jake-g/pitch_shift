@@ -131,7 +131,6 @@ static void handle_switch0_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH0_BASE, 0);
 
 	 /*Perform Jobs*/
-//	 alt_irq_enable(leftready_id);
 	 semitoneFlag = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
 	 printf("Semitone Toggle : %d\n", semitoneFlag);
 }
@@ -147,11 +146,10 @@ static void handle_switch1_interrupt(void* context, alt_u32 id) {
 
 	 /*Perform Jobs*/
 	 melodyFlag = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
-	 printf("Melody Toggle : %d\n", melodyFlag);
 
 	 // 0b0001
-	 switchMask1_4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
-	 printf("mask = %d\n", switchMask1_4);
+	 switchMask1_4 = melodyFlag;
+	 printf("mask = %d: Melody Toggle : %d\n", switchMask1_4);
 }
 
 static void handle_switch2_interrupt(void* context, alt_u32 id) {
@@ -162,11 +160,10 @@ static void handle_switch2_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE, 0);
 
 	 /*Perform Jobs*/
-	 printf("delay pitch toggled\n");
 
 	 // 0b0010
 	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH2_BASE) << 1);
-	 printf("mask = %d\n", switchMask1_4);
+	 printf("mask = %d: delay pitch toggled\n", switchMask1_4);
 }
 
 static void handle_switch3_interrupt(void* context, alt_u32 id) {
@@ -177,11 +174,10 @@ static void handle_switch3_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE, 0);
 
 	 /*Perform Jobs*/
-	 printf("delay echo toggled\n");
 
 	 // 0b0100
 	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE) << 2);
-	 printf("mask = %d\n", switchMask1_4);
+	 printf("mask = %d: delay echo toggled\n", switchMask1_4);
 }
 
 static void handle_switch4_interrupt(void* context, alt_u32 id) {
@@ -192,11 +188,10 @@ static void handle_switch4_interrupt(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE, 0);
 
 	 /*Perform Jobs*/
-	 printf("Loop toggled\n");
-
+	 // gain = 1;
 	 // 0b1000
 	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH4_BASE) << 3);
-	 printf("mask = %d\n", switchMask1_4);
+	 printf("mask = %d: Loop toggled", switchMask1_4);
 }
 
 
@@ -240,7 +235,7 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 			 } else {
 				 pitch_factor = pitch_factor - 0.1;
 			 }
-			 printf("Pitch decreased to : %f\n", pitch_factor);
+			 printf("Pitch decreased to : %.3f\n", pitch_factor);
 
 		 }
 	 }
@@ -266,7 +261,7 @@ static void handle_key2_interrupt(void* context, alt_u32 id) {
 		 } else {
 			 pitch_factor = pitch_factor + 0.1;
 		 }
-		 printf("Pitch increased to : %f\n", pitch_factor);
+		 printf("Pitch increased to : %.3f\n", pitch_factor);
 	 }
 }
 
@@ -321,26 +316,29 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 		}
 
 		// -------------- ECHO ------------------
-		if (switchMask1_4 == 0b0010 && delayIndex == 0) {
+		if (switchMask1_4 == 0b0010 && delayIndex % 200 == 0) {
 			// pitch changing echo changes pitch every 5000 samples
 			changePitch();
 		}
 		int x_t = getEchoSample() + playAndFillBuffer[sampleIndex];
+		int prev = delayedBuffer[delayIndex];
 		delayedBuffer[delayIndex] = x_t;
 		delayIndex = (delayIndex + 1) % DELAY_BUFFER_LENGTH;
-		
+
 		// --------------------------------------
 
 		// play and fill operation
 		// - decide which sample to play: choose from delay buffer and playAndFillBuffer
-		// switch1 to control melody mode
-		// switch2 to control pitch echo mode
-		// switch3 to control echo mode
-		// switch4 to control loop mode
+		// switch1 0b0001 to control melody mode
+		// switch2 0b0010 to control pitch echo mode
+		// switch3 0b0100 to control echo mode
+		// switch4 0b1000 to control loop mode
 		if ((switchMask1_4 == 0b0001) ||
 			(switchMask1_4 == 0b0010) ||
 			(switchMask1_4 == 0b0100)) {
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, x_t);
+		} else if (switchMask1_4 == 0b1000){
+			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, prev + leftChannel);
 		} else {
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);
 		}

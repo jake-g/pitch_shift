@@ -178,7 +178,7 @@ int main(void) {
 	//sampleFrequency = 0x0019; //32k
 	//sampleFrequency = 0x0023; //44.1k
 	//sampleFrequency = 0x0001; //48k
-	//aic23_demo[4] = 0x0014;
+	aic23_demo[4] = 0x0014;
 	aic23_demo[8] = sampleFrequency;
 	AIC23_demo();
 
