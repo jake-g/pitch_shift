@@ -49,9 +49,12 @@ short ptrStatus = 0;
 int semitoneFlag = 0;
 int melodyFlag = 0;
 
-// Switch configuration
-// swtich 1 through 4 state:
-// later enabled switch overrides others
+// Switch configuration: 1 -> on, 0 -> off
+// - swtich 1 through 4 state: later enabled switch overrides others
+// - switch1: melody mode
+// - switch2: pitch echo mode
+// - switch3: echo mode
+// - switch4: loop mode
 int switchMask1_4 = 0;
 // ------------------------------------------------------
 
@@ -176,7 +179,6 @@ static void handle_switch3_interrupt(void* context, alt_u32 id) {
 	 /*Perform Jobs*/
 	 printf("delay echo toggled\n");
 
-	 switch3Status = IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE);
 	 // 0b0100
 	 switchMask1_4 = (IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE) << 2);
 	 printf("mask = %d\n", switchMask1_4);
@@ -198,7 +200,7 @@ static void handle_switch4_interrupt(void* context, alt_u32 id) {
 }
 
 
-// RESET PITCH
+// RESET PITCH, SEMITONE, SAMPLE DELAY, PITCH RATE CHANGE
 static void handle_key0_interrupt(void* context, alt_u32 id) {
 	 volatile int* key0ptr = (volatile int *)context;
 	 *key0ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE);
@@ -206,9 +208,11 @@ static void handle_key0_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
 
+	 // reset
 	 pitch_factor = 1;
 	 semitone = 0;
 	 sampleDelay = MIN_DELAY;
+	 pitchChangeRate = MIN_PITCH_RATE;
 	 printf("Pitch Reset, delay reset\n");
 }
 
@@ -221,25 +225,24 @@ static void handle_key1_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
 
-	 // If echo mode, then delay down
-	 if (switch3Status) {
+	 if (switchMask1_4 == 0b0010) {
+		 printf("pitch rate change\n");
+	 } else if (switchMask1_4 == 0b0100) {
 		 changeDelay(-1);
 	 } else {
-
-	 if (pitch_factor <= 0) {
-		 printf("pitch_factor cannot be lower than 0\n");
-	 } else {
-		 if (semitoneFlag == 1) {
-			 semitone--;
-			 printf("Current Semitone : %d, ", semitone);
-			 pitch_factor = pow(2, semitone/12.0);
+		 if (pitch_factor <= 0) {
+			 printf("pitch_factor cannot be lower than 0\n");
 		 } else {
-			 pitch_factor = pitch_factor - 0.1;
+			 if (semitoneFlag == 1) {
+				 semitone--;
+				 printf("Current Semitone : %d, ", semitone);
+				 pitch_factor = pow(2, semitone/12.0);
+			 } else {
+				 pitch_factor = pitch_factor - 0.1;
+			 }
+			 printf("Pitch decreased to : %f\n", pitch_factor);
+
 		 }
-		 printf("Pitch decreased to : %f\n", pitch_factor);
-
-	 }
-
 	 }
 }
 
@@ -251,20 +254,19 @@ static void handle_key2_interrupt(void* context, alt_u32 id) {
 	 /* Write to the edge capture register to reset it. */
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
 
-	 // If echo mode, then delay up
-	 if (switch3Status) {
+	 if (switchMask1_4 == 0b0010) {
+		 printf("pitch rate change\n");
+	 } else if (switchMask1_4 == 0b0100) {
 		 changeDelay(1);
 	 } else {
-
-	 if (semitoneFlag == 1) {
-		 semitone++;
-		 printf("Current Semitone : %d\t", semitone);
-		 pitch_factor = pow(2, semitone/12.0);
-	 } else {
-		 pitch_factor = pitch_factor + 0.1;
-	 }
-	 printf("Pitch increased to : %f\n", pitch_factor);
-
+		 if (semitoneFlag == 1) {
+			 semitone++;
+			 printf("Current Semitone : %d\t", semitone);
+			 pitch_factor = pow(2, semitone/12.0);
+		 } else {
+			 pitch_factor = pitch_factor + 0.1;
+		 }
+		 printf("Pitch increased to : %f\n", pitch_factor);
 	 }
 }
 
@@ -326,7 +328,13 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
 
 		// play and fill operation
 		// - decide which sample to play: choose from delay buffer and playAndFillBuffer
-		if (switch3Status) {
+		// switch1 to control melody mode
+		// switch2 to control pitch echo mode
+		// switch3 to control echo mode
+		// switch4 to control loop mode
+		if ((switchMask1_4 == 0b0001) ||
+			(switchMask1_4 == 0b0010) ||
+			(switchMask1_4 == 0b1000)) {
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, x_t);
 		} else {
 			IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, playAndFillBuffer[sampleIndex]);

@@ -4,12 +4,17 @@
 #define MAX_DELAY 2000
 #define MIN_DELAY 1000
 #define DELAY_BUFFER_LENGTH 5000
+#define MIN_PITCH_RATE 0.5
+#define MAX_PITCH_RATE 0.1
 
 // Decay rate
 float gain = 0.6;
 
 // Current delay
 int sampleDelay = MIN_DELAY;
+
+// Current pitch change rate
+float pitchChangeRate = MIN_PITCH_RATE;
 
 // The rate of changing delay in echo mode. The number of samples
 // to increment/decrement in every key press.
@@ -22,14 +27,6 @@ alt_16 delayedBuffer[DELAY_BUFFER_LENGTH];
 // delayIndex: incremented by 1 every sample. 
 // wraps around to zero when it reaches 5000
 int delayIndex = 0;
-
-// switch to control pitch echo mode: 1 -> on, 0 -> off
-short switch2Status = 0;
-
-// switch to control echo mode: 1 -> on, 0 -> off
-short switch3Status = 0;
-
-
 
 // usage: e.g. call every time when the button is pressed
 // param: sign is either -1 or 1
@@ -45,7 +42,7 @@ void changeDelay(short sign) {
 
 // called 
 int getEchoSample() {
-	if (MAX_DELAY == 0) {
+	if (sampleDelay == 0) {
 		return 0;
 	}
 	return gain * delayedBuffer[(DELAY_BUFFER_LENGTH + delayIndex - sampleDelay) % DELAY_BUFFER_LENGTH];
