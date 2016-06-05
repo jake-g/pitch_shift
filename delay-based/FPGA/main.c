@@ -27,6 +27,8 @@ alt_u32 switch1_id = SWITCH1_IRQ;
 alt_u32 switch2_id = SWITCH2_IRQ;
 alt_u32 switch3_id = SWITCH3_IRQ;
 alt_u32 switch4_id = SWITCH4_IRQ;
+alt_u32 switch5_id = SWITCH5_IRQ;
+alt_u32 switch7_id = SWITCH7_IRQ;
 alt_u32 key0_id = KEY0_IRQ;
 alt_u32 key1_id = KEY1_IRQ;
 alt_u32 key2_id = KEY2_IRQ;
@@ -41,6 +43,8 @@ volatile int switch1 = 0;
 volatile int switch2 = 0;
 volatile int switch3 = 0;
 volatile int switch4 = 0;
+volatile int switch5 = 0;
+volatile int switch7 = 0;
 volatile int key0 = 0;
 volatile int key1 = 0;
 volatile int key2 = 0;
@@ -121,6 +125,8 @@ void system_initialization(){
 	 alt_irq_register(switch2_id, (void *)&switch2, handle_switch2_interrupt);
 	 alt_irq_register(switch3_id, (void *)&switch3, handle_switch3_interrupt);
 	 alt_irq_register(switch4_id, (void *)&switch4, handle_switch4_interrupt);
+	 alt_irq_register(switch5_id, (void *)&switch5, handle_switch5_interrupt);
+	 alt_irq_register(switch7_id, (void *)&switch7, handle_switch7_interrupt);
 	 alt_irq_register(key0_id, (void *)&key0, handle_key0_interrupt);
 	 alt_irq_register(key1_id, (void *)&key1, handle_key1_interrupt);
 	 alt_irq_register(key2_id, (void *)&key2, handle_key2_interrupt);
@@ -134,6 +140,8 @@ void system_initialization(){
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH2_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH3_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH4_BASE, 1);
+	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH5_BASE, 1);
+	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH7_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY0_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY1_BASE, 1);
 	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY2_BASE, 1);
@@ -147,6 +155,8 @@ void system_initialization(){
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE, 0);
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH5_BASE, 0);
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH7_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
@@ -179,7 +189,7 @@ int main(void) {
 	//sampleFrequency = 0x0019; //32k
 	//sampleFrequency = 0x0023; //44.1k
 	//sampleFrequency = 0x0001; //48k
-	aic23_demo[4] = 0x0014;
+	//aic23_demo[4] = 0x0014;
 	aic23_demo[8] = sampleFrequency;
 	AIC23_demo();
 
@@ -192,6 +202,8 @@ int main(void) {
 	prevSw2 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH2_BASE);
 	prevSw3 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE);
 	prevSw4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH4_BASE);
+	prevSw5 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH5_BASE);
+	prevSw7 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH7_BASE);
 
 	/* Melody Settings*/
 	// TODO MAKE HEADER FOR THIS AND TO CALL MELODY IN MAIN

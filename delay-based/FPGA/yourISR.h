@@ -55,12 +55,16 @@ short prevSw1 = 0;
 short prevSw2 = 0;
 short prevSw3 = 0;
 short prevSw4 = 0;
+short prevSw5 = 0;
+short prevSw7 = 0;
 
 short currSw0 = 0;
 short currSw1 = 0;
 short currSw2 = 0;
 short currSw3 = 0;
 short currSw4 = 0;
+short currSw5 = 0;
+short currSw7 = 0;
 
 // Switch configuration: 1 -> on, 0 -> off
 // - swtich 1 through 4 state: later enabled switch overrides others
@@ -69,8 +73,12 @@ short currSw4 = 0;
 // - switch3: echo mode
 // - switch4: loop mode
 int switchMask1_4 = 0;
+
+short rightToggle = 1;
 // ------------------------------------------------------
 
+// AIC23
+extern unsigned int aic23_demo[10];
 
 //Value for interrupt ID
 extern alt_u32 switch0_id;
@@ -78,6 +86,8 @@ extern alt_u32 switch1_id;
 extern alt_u32 switch2_id;
 extern alt_u32 switch3_id;
 extern alt_u32 switch4_id;
+extern alt_u32 switch5_id;
+extern alt_u32 switch7_id;
 extern alt_u32 key0_id;
 extern alt_u32 key1_id;
 extern alt_u32 key2_id;
@@ -228,6 +238,45 @@ static void handle_switch4_interrupt(void* context, alt_u32 id) {
 	 }
 }
 
+static void handle_switch5_interrupt(void* context, alt_u32 id) {
+	 volatile int* switch5ptr = (volatile int *)context;
+	 *switch5ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH5_BASE);
+
+	 /* Write to the edge capture register to reset it. */
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH5_BASE, 0);
+
+	 /*Perform Jobs*/
+	 currSw5 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH5_BASE);
+	 if (prevSw5 != currSw5) {
+		 printf("enable right channel toggle: %d\n", IORD_ALTERA_AVALON_PIO_DATA(SWITCH5_BASE));
+		 rightToggle = currSw5;
+		 prevSw5 = currSw5;
+	 }
+}
+
+static void handle_switch7_interrupt(void* context, alt_u32 id) {
+	 volatile int* switch7ptr = (volatile int *)context;
+	 *switch7ptr = IORD_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH7_BASE);
+
+	 /* Write to the edge capture register to reset it. */
+	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH7_BASE, 0);
+
+	 /*Perform Jobs*/
+	 currSw7 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH7_BASE);
+	 if (prevSw7 != currSw7) {
+		 if (currSw7) {
+			 // MIC IN
+			 aic23_demo[4] = 0x0014;
+			 printf("MIC IN enabled\n");
+		 } else {
+			 // LINE IN
+			 aic23_demo[4] = 0x0012;
+			 printf("LINE IN enabled\n");
+		 }
+		 AIC23_demo();
+		 prevSw7 = currSw7;
+	 }
+}
 
 // RESET PITCH, SEMITONE, SAMPLE DELAY, PITCH RATE CHANGE
 static void handle_key0_interrupt(void* context, alt_u32 id) {
@@ -412,7 +461,7 @@ static void handle_rightready_interrupt_test(void* context, alt_u32 id) {
 	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(RIGHTREADY_BASE, 0);
 	 /*******Read, playback, store data*******/
 	 rightChannel = IORD_ALTERA_AVALON_PIO_DATA(RIGHTDATA_BASE);
-	 IOWR_ALTERA_AVALON_PIO_DATA(RIGHTSENDDATA_BASE, rightChannel);
+	 IOWR_ALTERA_AVALON_PIO_DATA(RIGHTSENDDATA_BASE, rightToggle * rightChannel);
 	 rightChannelData[rightCount] = rightChannel;
 	 rightCount = (rightCount+1) % BUFFERSIZE;
 	 /****************************************/
