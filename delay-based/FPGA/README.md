@@ -29,4 +29,4 @@ NOTE: Only one of switches 1 through 4 should be enabled. Others get disabled
   * should be able to copy and paste result from Matlab. 
   * Have decay at the end of each note 
 
-* 
+* sampler mode
