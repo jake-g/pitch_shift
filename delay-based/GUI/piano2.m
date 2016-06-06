@@ -22,7 +22,7 @@ function varargout = piano2(varargin)
 
 % Edit the above text to modify the response to help piano2
 
-% Last Modified by GUIDE v2.5 05-Jun-2016 20:58:35
+% Last Modified by GUIDE v2.5 06-Jun-2016 00:54:48
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -431,14 +431,28 @@ elseif SawtoothOn == 1
 elseif SampleOn == 1
     
   if length(Buffer) > 1
+    % Set buffer bounds
+    sampleStart = str2num(get(handles.SampleStart, 'String'));
+    sampleEnd = get(handles.SampleEnd, 'String');
+    if sampleStart < 1
+        sampleStart = 1;
+    end
+    if strcmp(sampleEnd, 'END')
+        sampleEnd = length(Buffer);
+    else
+        sampleEnd = str2num(sampleEnd);
+    end
+    croppedBuf = Buffer(sampleStart:sampleEnd);
+    
+    % Pitch Shift
     num = 10000;
     den = round(10000*factor);
-    soundVector = resample(pvoc(Buffer, num/den), num, den)';
-    pad = length(Buffer) - length(soundVector);
+    soundVector = resample(pvoc(croppedBuf, num/den), num, den)';
+    pad = length(croppedBuf) - length(soundVector);
     if pad > 0 % pad
         soundVector =  padarray(soundVector, [0 pad],'post');
     else % truncate
-        soundVector = soundVector(1:length(Buffer));
+        soundVector = soundVector(1:length(croppedBuf));
     end
   else
       soundVector = 0;
@@ -486,6 +500,39 @@ function Stop_Callback(hObject, eventdata, handles)
 
 handles.SoundVector = 0;
 guidata(handles.figure1, handles);
+
+
+% --- Executes on button press in Loop.
+function Loop_Callback(hObject, eventdata, handles)
+% hObject    handle to Loop (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% --- Executes during object creation, after setting all properties.
+function SampleStart_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to SampleStart (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+% --- Executes during object creation, after setting all properties.
+function SampleEnd_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to SampleEnd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
 
 function Time_Callback(hObject, eventdata, handles)
 % hObject    handle to Time (see GCBO)
@@ -596,7 +643,9 @@ function RecieveData_Callback(hObject, eventdata, handles)
 
 % Get Buffer
 buf = load('hello.mat');
-handles.SampleBuffer = buf.x(1:5000);
+
+% Load Sample
+handles.SampleBuffer = buf.x(1:end);
 guidata(handles.figure1, handles);  
 
 % 
@@ -744,16 +793,6 @@ set(handles.SawtoothWave, 'Value', 0);
 set(handles.Sample, 'Value', 0);
 
 
-
-% --- Executes during object creation, after setting all properties.
-function SinWave_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SinWave (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-set(hObject, 'Value', 1);
-
-
 % --- Executes on button press in SquareWave.
 function SquareWave_Callback(hObject, eventdata, handles)
 % hObject    handle to SquareWave (see GCBO)
@@ -795,9 +834,9 @@ set(handles.SquareWave, 'Value', 0);
 set(handles.SawtoothWave, 'Value', 0);
 set(handles.Sample, 'Value', 1);
 
-% --- Executes on button press in pushbutton55.
+% --- Executes on button press in SendNote.
 function pushbutton55_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton55 (see GCBO)
+% hObject    handle to SendNote (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -868,3 +907,47 @@ function SWnone_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of SWnone
+
+
+function TimeValue_Callback(hObject, eventdata, handles)
+% hObject    handle to Time (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of Time as text
+%        str2double(get(hObject,'String')) returns contents of Time as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Time_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Time (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+function KeyValue_Callback(hObject, eventdata, handles)
+% hObject    handle to KeyValue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of KeyValue as text
+%        str2double(get(hObject,'String')) returns contents of KeyValue as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function KeyValue_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to KeyValue (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
