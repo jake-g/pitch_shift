@@ -429,17 +429,18 @@ end
 
 sound(soundVector, 1/SampleRate)
 RecordOn = get(handles.Record, 'Value');
-Samps = 8000 * TimeValue; % number of samples for 8khz Fs
+% Samps = 8000 * TimeValue; % number of samples for 8khz Fs
+Samps = round(40* TimeValue); % number of samples for 8khz Fs
 
 if RecordOn == 1
   SoundVectorLong = handles.SoundVector;
   Melody = handles.Melody;
   if SoundVectorLong == 0
     SoundVectorLong = soundVector;
-    Melody = [Samps, factor];
+    Melody = [Samps, semitone];
   else
     SoundVectorLong = cat(2, SoundVectorLong, soundVector);
-    Melody = cat(2, Melody, [Samps, factor]);
+    Melody = cat(2, Melody, [Samps, semitone]);
 
   end
   handles.SoundVector = SoundVectorLong;
@@ -524,12 +525,23 @@ if Melody == 0
     return;
 else  % send over UART
     disp('Sending Melody...')
-    Melody  % temp print for now
+    printMelody(Melody)
     fopen(s);
     fwrite(s, Melody);
     fclose(s);
 end
 
+function printMelody(M)
+melody = [];
+for i = 1:length(M)
+    melody = [ melody num2str(M(i)) ', '];
+end
+melody = melody(1:end-2) % remove last ,
+disp('Paste this in the melody.h');
+melody_length = ['#define melLength ' int2str(length(M))];
+melody = ['int melody[melLength] = {' melody '};'];
+line = sprintf('\n%s\n\n%s', melody_length, melody);
+disp(line)
 
 % --- Executes on button press in Send Melody.
 function SendNote_Callback(hObject, eventdata, handles)
@@ -543,8 +555,8 @@ COM = ['COM',get(handles.comPort, 'String')];
 s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
 set(s,'InputBufferSize',20000); % set the size of input buffer
 handles.serial = s;
-LastSemi = str2num(get(handles.STSemiValue, 'String'))
-LastNote     = 2^(LastSemi/12)
+LastNote = str2num(get(handles.STSemiValue, 'String'))
+% LastNote     = 2^(LastSemi/12)
 if LastNote == 0
     return;
 else  % send over UART
@@ -552,7 +564,7 @@ else  % send over UART
     LastNote  % temp print for now
     fopen(s);
     %fwrite(s, LastNote);
-    fwrite(s, 'FEW');
+    fwrite(s, LastNote);
     fclose(s); 
     delete(s);
 end
