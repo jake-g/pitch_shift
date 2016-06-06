@@ -25,8 +25,10 @@ NOTE: Only one of switches 1 through 4 should be enabled. Others get disabled
 ## TODO's:
 * when switchMask1_4 is set to 0, reset pitch_factor to 1
 * Fix looping by inserting a silence of size 5000 samples (i.e. play 5000 samples, then rest 5000 samples)
-* melody header 
-  * should be able to copy and paste result from Matlab. 
-  * Have decay at the end of each note 
+* ~~melody header~~
+  * ~~should be able to copy and paste result from Matlab.~~
+  * ~~Have decay at the end of each note~~
 
 * sampler mode
+ * ~~C UART buffer~~
+ * Matlab sampler
