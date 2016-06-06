@@ -22,7 +22,7 @@ function varargout = piano2(varargin)
 
 % Edit the above text to modify the response to help piano2
 
-% Last Modified by GUIDE v2.5 04-Jun-2016 13:50:30
+% Last Modified by GUIDE v2.5 05-Jun-2016 20:58:35
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -55,11 +55,12 @@ function piano2_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for piano2
 handles.output      = hObject;
-handles.SampleRate  = 1/20000;
+handles.SampleRate  = 1/8000;
 handles.SoundVector = 0;
 handles.Melody = 0;
 handles.TimeValue   = 0.3488;
 handles.KeyValue = 261.625;
+handles.SampleBuffer = 0;
 
 % Update handles structure
 guidata(hObject, handles);
@@ -414,10 +415,12 @@ set(handles.STSemiValue, 'String', num2str(semitone));
 
 SampleRate  = handles.SampleRate;
 TimeValue   = handles.TimeValue;
+Buffer      = handles.SampleBuffer;
 Samples     = 0:SampleRate:TimeValue;
 SinOn       = get(handles.SinWave, 'Value');
 SquareOn    = get(handles.SquareWave, 'Value');
 SawtoothOn  = get(handles.SawtoothWave, 'Value');
+SampleOn    = get(handles.Sample, 'Value');
 
 if SinOn == 1
   soundVector = sin(2*pi*freq*Samples);
@@ -425,11 +428,27 @@ elseif SquareOn == 1
   soundVector = square(2*pi*freq*Samples);
 elseif SawtoothOn == 1
   soundVector = sawtooth(2*pi*freq*Samples);
+elseif SampleOn == 1
+    
+  if length(Buffer) > 1
+    num = 10000;
+    den = round(10000*factor);
+    soundVector = resample(pvoc(Buffer, num/den), num, den)';
+    pad = length(Buffer) - length(soundVector);
+    if pad > 0 % pad
+        soundVector =  padarray(soundVector, [0 pad],'post');
+    else % truncate
+        soundVector = soundVector(1:length(Buffer));
+    end
+  else
+      soundVector = 0;
+      disp('No sample recorded');
+  end
 end
 
-sound(soundVector, 1/SampleRate)
+
+soundsc(soundVector, 1/SampleRate)
 RecordOn = get(handles.Record, 'Value');
-% Samps = 8000 * TimeValue; % number of samples for 8khz Fs
 Samps = round(40* TimeValue); % number of samples for 8khz Fs
 
 if RecordOn == 1
@@ -457,7 +476,7 @@ function Play_Callback(hObject, eventdata, handles)
 SoundVector   = handles.SoundVector;
 SampleRate    = handles.SampleRate;
 
-sound(SoundVector, 1/SampleRate)
+soundsc(SoundVector, 1/SampleRate)
  
 % --- Executes on button press in Stop.
 function Stop_Callback(hObject, eventdata, handles)
@@ -575,37 +594,46 @@ function RecieveData_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Init COM
-delete(instrfindall);
-COM = ['COM',get(handles.comPort, 'String')];
-s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
-set(s,'InputBufferSize',20000); % set the size of input buffer
-fopen(s); % get ready to receive the data
-buffersize = 2; % set the size of instant read of buffer
+% Get Buffer
+buf = load('hello.mat');
+handles.SampleBuffer = buf.x(1:5000);
+guidata(handles.figure1, handles);  
 
-% Listen
-buffer = fread(s,buffersize, 'int16'); % read the buffer when data arrive
-pInt = buffer(1);  
-sw = buffer(2)
-pitch = pInt/10000;
-semitone = round(log2(pitch)*12);
-set(handles.STCurrValue, 'String', num2str(semitone));
-
-% Switch Status
-switch sw
-    case 1
-        set(handles.SWmelody,'Value', 1)
-    case 2
-        set(handles.SWecho,'Value', 1)
-    case 4
-        set(handles.SWpitch,'Value', 1)
-    case 8
-        set(handles.SWloop,'Value', 1)
-    otherwise
-        set(handles.SWnone,'Value', 1)
-end
-
-fclose(s);
+% 
+% % Init COM
+% delete(instrfindall);
+% COM = ['COM',get(handles.comPort, 'String')];
+% s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
+% set(s,'InputBufferSize',20000); % set the size of input buffer
+% fopen(s); % get ready to receive the data
+% buffersize = 2; % set the size of instant read of buffer
+% 
+% % Listen
+% buffer = fread(s,buffersize, 'int16'); % read the buffer when data arrive
+% pInt = buffer(1);  
+% sw = buffer(2)
+% pitch = pInt/10000;
+% semitone = round(log2(pitch)*12);
+% set(handles.STCurrValue, 'String', num2str(semitone));
+% 
+% % Get Buffer
+% handles.sampleBuffer = load('hello.mat');
+% 
+% % Switch Status
+% switch sw
+%     case 1
+%         set(handles.SWmelody,'Value', 1)
+%     case 2
+%         set(handles.SWecho,'Value', 1)
+%     case 4
+%         set(handles.SWpitch,'Value', 1)
+%     case 8
+%         set(handles.SWloop,'Value', 1)
+%     otherwise
+%         set(handles.SWnone,'Value', 1)
+% end
+% 
+% fclose(s);
 
 
 % --- Executes on button press in QuarterNote.
@@ -713,6 +741,8 @@ function SinWave_Callback(hObject, eventdata, handles)
 set(handles.SinWave, 'Value', 1);
 set(handles.SquareWave, 'Value', 0);
 set(handles.SawtoothWave, 'Value', 0);
+set(handles.Sample, 'Value', 0);
+
 
 
 % --- Executes during object creation, after setting all properties.
@@ -735,6 +765,8 @@ function SquareWave_Callback(hObject, eventdata, handles)
 set(handles.SinWave, 'Value', 0);
 set(handles.SquareWave, 'Value', 1);
 set(handles.SawtoothWave, 'Value', 0);
+set(handles.Sample, 'Value', 0);
+
 
 % --- Executes on button press in SawtoothWave.
 function SawtoothWave_Callback(hObject, eventdata, handles)
@@ -747,7 +779,21 @@ function SawtoothWave_Callback(hObject, eventdata, handles)
 set(handles.SinWave, 'Value', 0);
 set(handles.SquareWave, 'Value', 0);
 set(handles.SawtoothWave, 'Value', 1);
+set(handles.Sample, 'Value', 0);
 
+
+% --- Executes on button press in Sample.
+function Sample_Callback(hObject, eventdata, handles)
+% hObject    handle to Sample (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of Sample
+
+set(handles.SinWave, 'Value', 0);
+set(handles.SquareWave, 'Value', 0);
+set(handles.SawtoothWave, 'Value', 0);
+set(handles.Sample, 'Value', 1);
 
 % --- Executes on button press in pushbutton55.
 function pushbutton55_Callback(hObject, eventdata, handles)
