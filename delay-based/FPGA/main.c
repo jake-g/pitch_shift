@@ -21,7 +21,7 @@
 /********************Global Variables for your system********************/
 /************************************************************************/
 
-//Value for interrupt ID
+// Value for interrupt ID
 alt_u32 switch0_id = SWITCH0_IRQ;
 alt_u32 switch1_id = SWITCH1_IRQ;
 alt_u32 switch2_id = SWITCH2_IRQ;
@@ -52,20 +52,23 @@ volatile int key3 = 0;
 volatile int leftready = 0;
 volatile int rightready = 0;
 
-
-//AIC default setting value   L-in     R-in    L-H-Vo  R-H-Vo  Ana-Cl  Dig-Cl  Power   Dig-It  SR-Clt  Dig-Act
+// AIC default setting value   L-in     R-in    L-H-Vo  R-H-Vo  Ana-Cl  Dig-Cl
+// Power   Dig-It
+// SR-Clt  Dig-Act
 //                                                             0x0014->micIn
-unsigned int aic23_demo[10] = {0x0017, 0x0017, 0x01f9, 0x01f9, 0x0012, 0x0000, 0x0000, 0x0042, 0x0001, 0x0001};
+unsigned int aic23_demo[10] = {0x0017, 0x0017, 0x01f9, 0x01f9, 0x0012,
+                               0x0000, 0x0000, 0x0042, 0x0001, 0x0001};
 
-//leftChannel and rightChannel are the instant values of the value reading from ADC
+// leftChannel and rightChannel are the instant values of the value reading from
+// ADC
 int leftChannel = 0;
 int rightChannel = 0;
 int convIndex = 0;
 
-//Default ADC Sampling frequency = 8k
+// Default ADC Sampling frequency = 8k
 int sampleFrequency = 0x000C;
 
-//Buffer that store values from different channels
+// Buffer that store values from different channels
 alt_16 leftChannelData[BUFFERSIZE];
 alt_16 rightChannelData[BUFFERSIZE];
 int convResultBuffer[CONVBUFFSIZE];
@@ -77,7 +80,7 @@ int convResultBuffer[CONVBUFFSIZE];
  * rx_buffer-> A ring buffer to collect uart data sent by host computer
  * */
 alt_16 datatest[UART_BUFFER_SIZE];
-unsigned short RxHead=0;
+unsigned short RxHead = 0;
 unsigned char rx_buffer[RX_BUFFER_SIZE];
 
 /*Channel indicators: indicate the index of the most recent collected data*/
@@ -104,149 +107,142 @@ int sr = 0;
 int uart;
 
 /*System initialization function. Should be called before your while(1)*/
-void system_initialization(){
-	/*Hard-code to 1 right here, you can use ISR
-	 *to change the value by yourself
-	*/
-	uartStartRecvFlag = 1;
+void system_initialization() {
+  /*Hard-code to 1 right here, you can use ISR
+       *to change the value by yourself
+      */
+  uartStartRecvFlag = 1;
 
-	 /*Open Uart port and ready to transmit and receive*/
-	 uart = open(UART_NAME, O_ACCMODE);
-	 if(!uart){
-		 printf("failed to open uart\n");
-		 //return 0;
-	 } else {
-		 printf("Uart ready!\n");
-	 }
+  /*Open Uart port and ready to transmit and receive*/
+  uart = open(UART_NAME, O_ACCMODE);
+  if (!uart) {
+    printf("failed to open uart\n");
+    // return 0;
+  } else {
+    printf("Uart ready!\n");
+  }
 
-	 //Interrupts Registrations
-	 alt_irq_register(switch0_id, (void *)&switch0, handle_switch0_interrupt);
-	 alt_irq_register(switch1_id, (void *)&switch1, handle_switch1_interrupt);
-	 alt_irq_register(switch2_id, (void *)&switch2, handle_switch2_interrupt);
-	 alt_irq_register(switch3_id, (void *)&switch3, handle_switch3_interrupt);
-	 alt_irq_register(switch4_id, (void *)&switch4, handle_switch4_interrupt);
-	 alt_irq_register(switch5_id, (void *)&switch5, handle_switch5_interrupt);
-	 alt_irq_register(switch7_id, (void *)&switch7, handle_switch7_interrupt);
-	 alt_irq_register(key0_id, (void *)&key0, handle_key0_interrupt);
-	 alt_irq_register(key1_id, (void *)&key1, handle_key1_interrupt);
-	 alt_irq_register(key2_id, (void *)&key2, handle_key2_interrupt);
-	 alt_irq_register(key3_id, (void *)&key3, handle_key3_interrupt);
-	 alt_irq_register(leftready_id, (void *)&leftready, handle_leftready_interrupt_test);
-	 alt_irq_register(rightready_id, (void *)&rightready, handle_rightready_interrupt_test);
+  // Interrupts Registrations
+  alt_irq_register(switch0_id, (void*)&switch0, handle_switch0_interrupt);
+  alt_irq_register(switch1_id, (void*)&switch1, handle_switch1_interrupt);
+  alt_irq_register(switch2_id, (void*)&switch2, handle_switch2_interrupt);
+  alt_irq_register(switch3_id, (void*)&switch3, handle_switch3_interrupt);
+  alt_irq_register(switch4_id, (void*)&switch4, handle_switch4_interrupt);
+  alt_irq_register(switch5_id, (void*)&switch5, handle_switch5_interrupt);
+  alt_irq_register(switch7_id, (void*)&switch7, handle_switch7_interrupt);
+  alt_irq_register(key0_id, (void*)&key0, handle_key0_interrupt);
+  alt_irq_register(key1_id, (void*)&key1, handle_key1_interrupt);
+  alt_irq_register(key2_id, (void*)&key2, handle_key2_interrupt);
+  alt_irq_register(key3_id, (void*)&key3, handle_key3_interrupt);
+  alt_irq_register(leftready_id, (void*)&leftready,
+                   handle_leftready_interrupt_test);
+  alt_irq_register(rightready_id, (void*)&rightready,
+                   handle_rightready_interrupt_test);
 
-	 /*Interrupt enable -> mask to enable it*/
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH0_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH1_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH2_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH3_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH4_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH5_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH7_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY0_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY1_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY2_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY3_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(LEFTREADY_BASE, 1);
-	 IOWR_ALTERA_AVALON_PIO_IRQ_MASK(RIGHTREADY_BASE, 1);
+  /*Interrupt enable -> mask to enable it*/
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH0_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH1_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH2_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH3_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH4_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH5_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(SWITCH7_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY0_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY1_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY2_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(KEY3_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(LEFTREADY_BASE, 1);
+  IOWR_ALTERA_AVALON_PIO_IRQ_MASK(RIGHTREADY_BASE, 1);
 
-	 /*Reset edge capture bit*/
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH0_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH1_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH5_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH7_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY3_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE, 0);
-	 IOWR_ALTERA_AVALON_PIO_EDGE_CAP(RIGHTREADY_BASE, 0);
+  /*Reset edge capture bit*/
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH0_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH1_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH2_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH3_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH4_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH5_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(SWITCH7_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY0_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY1_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY2_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(KEY3_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(LEFTREADY_BASE, 0);
+  IOWR_ALTERA_AVALON_PIO_EDGE_CAP(RIGHTREADY_BASE, 0);
 
-	 /*turn off all LEDs*/
-	 IOWR_ALTERA_AVALON_PIO_DATA(LED_BASE, 0x00);
+  /*turn off all LEDs*/
+  IOWR_ALTERA_AVALON_PIO_DATA(LED_BASE, 0x00);
 
-	 /*initialize SPI transmission*/
-	 IOWR_ALTERA_AVALON_PIO_DATA(CS_BASE, 1); // ~CS low
-	 IOWR_ALTERA_AVALON_PIO_DATA(SCLK_BASE, 0); // Initialize SCLK to high
+  /*initialize SPI transmission*/
+  IOWR_ALTERA_AVALON_PIO_DATA(CS_BASE, 1);    // ~CS low
+  IOWR_ALTERA_AVALON_PIO_DATA(SCLK_BASE, 0);  // Initialize SCLK to high
 }
 
 /*
-Based on the example, Sine8_LED.c Sine generation with DIP switch control, given in the
-lecture note 2, generate an 800Hz sine wave with an 8KHz sampling rate (10 samples per period) and
-output to the LINEOUT jack of the AIC23 daughter card. Use an oscilloscope attached to the LINEOUT jack
-to verify. Also take advantage of the data exporting via UART (see the example in Lecture Note 1 about
-transferring a chunk of data to Matlab via UART), use the appropriate Matlab command to plot the 256
-most recent output samples in the time domain, as well as the FFT magnitudes of these 256 samples.
+Based on the example, Sine8_LED.c Sine generation with DIP switch control, given
+in the
+lecture note 2, generate an 800Hz sine wave with an 8KHz sampling rate (10
+samples per period) and
+output to the LINEOUT jack of the AIC23 daughter card. Use an oscilloscope
+attached to the LINEOUT
+jack
+to verify. Also take advantage of the data exporting via UART (see the example
+in Lecture Note 1
+about
+transferring a chunk of data to Matlab via UART), use the appropriate Matlab
+command to plot the 256
+most recent output samples in the time domain, as well as the FFT magnitudes of
+these 256 samples.
  *
  * */
 
 int main(void) {
-	system_initialization();
-	// set frequency
-	sampleFrequency = 0x000C; //8k
-	//sampleFrequency = 0x0019; //32k
-	//sampleFrequency = 0x0023; //44.1k
-	//sampleFrequency = 0x0001; //48k
-	//aic23_demo[4] = 0x0014;
-	aic23_demo[8] = sampleFrequency;
-	AIC23_demo();
+  system_initialization();
+  // set frequency
+  sampleFrequency = 0x000C;  // 8k
+  // sampleFrequency = 0x0019; //32k
+  // sampleFrequency = 0x0023; //44.1k
+  // sampleFrequency = 0x0001; //48k
+  // aic23_demo[4] = 0x0014;
+  aic23_demo[8] = sampleFrequency;
+  AIC23_demo();
 
+  memset(PING, 0, BUFF_SIZE);
+  memset(PONG, 0, BUFF_SIZE);
+  memset(lastBuff, 0, BUFF_SIZE);
+  prevSw0 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
+  prevSw1 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
+  prevSw2 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH2_BASE);
+  prevSw3 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE);
+  prevSw4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH4_BASE);
+  prevSw5 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH5_BASE);
+  prevSw7 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH7_BASE);
 
-	memset(PING, 0, BUFF_SIZE);
-	memset(PONG, 0, BUFF_SIZE);
-	memset(lastBuff, 0, BUFF_SIZE);
-	prevSw0 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH0_BASE);
-	prevSw1 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
-	prevSw2 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH2_BASE);
-	prevSw3 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE);
-	prevSw4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH4_BASE);
-	prevSw5 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH5_BASE);
-	prevSw7 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH7_BASE);
+  // Main loop
+  int i = 0;
+  while (1) {
+    if (uartStartSendFlag) {
+      printf("UART SENT\n");
+      uart_sendInt16((int)(pitch_factor * 10000));  // send pitch
+      // switch config format in binary representation:
+      // 0b[switch4,switch3,switch2,switch1,switch0]
+      uart_sendInt16(switchMask1_4);  // send sw config
+      for (i = 0; i < UART_BUFFER_SIZE; i++) {
+        uart_sendInt16(UARTInput[i]);  // send last buffer
+      }
+      uartStartSendFlag = 0;
+    }
 
-	/* Melody Settings*/
-	// TODO MAKE HEADER FOR THIS AND TO CALL MELODY IN MAIN
-//	#define melLength 8
-#define melLength 25
-//	int melody[melLength] = {0, 4, 7, 12, 4, 0, -7, -4}; // semitones to play
-	int melody[melLength] = {4,2,0,2,4,4,4,2,2,2,4,4,4,4,2,0,2,4,4,4,2,2,4,2,0}; // semitones to play
-	int b = 0;  // index for melody arr current beat
-	int melodyLoop = 10; // period between note change
-	int lp = 0; // loop counter
+    if (input_ready) {
+      // Play melody
+      if (melodyFlag == 1) {
+        PlayMelody();
+      }
 
+      // Process Pitch Shift
+      PitchShift(pitch_factor, processBuffer, processBuffer);
+      input_ready = 0;
+    }
+  }
 
-	// Main loop
-	while(1){
-		if (uartStartSendFlag) {
-			printf("UART SENT\n");
-			uart_sendInt16((int) (pitch_factor * 10000));
-			// switch config format in binary representation:
-			// 0b[switch4,switch3,switch2,switch1,switch0]
-			uart_sendInt16(switchMask1_4);
-			uartStartSendFlag = 0;
-		}
-
-
-		if (input_ready) {
-			// Play melody
-			if (melodyFlag == 1) {
-				if (lp == 0) {  // Change to next note
-					pitch_factor = pow(2, melody[b]/12.0);
-					 printf("Pitch Factor : %f, Semitone: %d\n", pitch_factor, melody[b]);
-					b = (b + 1) % melLength;
-				}
-				lp = (lp + 1) % melodyLoop;
-			}
-
-			// Process Pitch Shift
-			PitchShift(pitch_factor, processBuffer, processBuffer);
-			input_ready = 0;
-		}
-	}
-
-	/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-	/*!!!!!!!YOUR CODE SHOULD NEVER REACH HERE AND BELOW!!!!!!!*/
-	/*!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-	return 0;
+  return 0;
 }
