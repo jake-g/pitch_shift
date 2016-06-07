@@ -22,7 +22,8 @@
 NOTE: Only one of switches 1 through 4 should be enabled. Others get disabled
 
 ## Software Interface: 
-- GUI: either python or matlab 
+- GUI: Matlab 
+- ![alt tag](https://github.com/jake-g/audio_fx/blob/master/delay-based/GUI/matlab_GUI.PNG)
 
 ## TODO's:
 * when switchMask1_4 is set to 0, reset pitch_factor to 1
