@@ -505,7 +505,7 @@ function Play_Callback(hObject, eventdata, handles)
 % hObject    handle to Play (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
+disp('Playing melody')
 SoundVector   = handles.SoundVector;
 SampleRate    = handles.SampleRate;
 
@@ -516,6 +516,7 @@ function Stop_Callback(hObject, eventdata, handles)
 % hObject    handle to Stop (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+disp('Resetting melody')
 
 handles.SoundVector = 0;
 guidata(handles.figure1, handles);
@@ -635,28 +636,37 @@ set(s,'InputBufferSize',20000); % set the size of input buffer
 fopen(s); % get ready to receive the data
 buffersize = 8002; % set the size of instant read of buffer
 
+
 % Listen
 buffer = fread(s,buffersize, 'int16'); % read the buffer when data arrive
-pInt = buffer(1);  
-sw = buffer(2);
-handles.SampleBuffer = buffer(3:end);
-pitch = pInt/10000;
-semitone = round(log2(pitch)*12);
-set(handles.STCurrValue, 'String', num2str(semitone));
 
-% Switch Status
-switch sw
-    case 1
-        set(handles.SWmelody,'Value', 1)
-    case 2
-        set(handles.SWecho,'Value', 1)
-    case 4
-        set(handles.SWpitch,'Value', 1)
-    case 8
-        set(handles.SWloop,'Value', 1)
-    otherwise
-        set(handles.SWnone,'Value', 1)
+
+if length(buffer) <= 1
+    disp('Buffer Not Recieved')
+else
+   disp('Buffer Recieved')
+    pInt = buffer(1);  
+    sw = buffer(2);
+    handles.SampleBuffer = buffer(3:end);
+    pitch = pInt/10000;
+    semitone = round(log2(pitch)*12);
+    set(handles.STCurrValue, 'String', num2str(semitone));
+
+    % Switch Status
+    switch sw
+        case 1
+            set(handles.SWmelody,'Value', 1)
+        case 2
+            set(handles.SWecho,'Value', 1)
+        case 4
+            set(handles.SWpitch,'Value', 1)
+        case 8
+            set(handles.SWloop,'Value', 1)
+        otherwise
+            set(handles.SWnone,'Value', 1)
+    end
 end
+
 
 fclose(s);
 guidata(handles.figure1, handles);  
