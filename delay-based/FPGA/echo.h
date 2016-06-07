@@ -34,6 +34,12 @@ alt_16 delayedBuffer[DELAY_BUFFER_LENGTH];
 // wraps around to zero when it reaches 5000
 int delayIndex = 0;
 
+// loop parameters
+#define DUTY_CYCLE 3000
+#define LOOP_PERIOD 8000
+short loopCounter = 0;
+short loopToggle = 0;
+
 // usage: e.g. call every time when the button is pressed
 // param: sign is either -1 or 1
 void changeDelay(short sign) {

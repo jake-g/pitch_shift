@@ -22,8 +22,7 @@
 void waitFor(unsigned int n) {
   printf("Pausing %d iterations...", n);
   int i;
-  for (i = 0; i < n; i++)
-    ;
+  for (i = 0; i < n; i++);
   printf("Finished\n");
 }
 // ------------------------------------------------------
@@ -428,7 +427,13 @@ static void handle_leftready_interrupt_test(void* context, alt_u32 id) {
     if ((switchMask1_4 == 0b0010) || (switchMask1_4 == 0b0100)) {
       IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, x_t);
     } else if (switchMask1_4 == 0b1000) {
-      IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, prev + leftChannel);
+      if (loopCounter < DUTY_CYCLE) {
+    	  loopToggle = 1;
+      } else {
+    	  loopToggle = 0;
+      }
+      loopCounter = (loopCounter + 1) % LOOP_PERIOD;
+      IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE, loopToggle * (prev + leftChannel));
     } else {
       IOWR_ALTERA_AVALON_PIO_DATA(LEFTSENDDATA_BASE,
                                   melGain * playAndFillBuffer[sampleIndex]);

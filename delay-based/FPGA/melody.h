@@ -21,9 +21,10 @@ int melody[melLength] = {14, 0, 14, 4, 14, 14, 14, 11, 14, 14, 14, 4,
 
 // Init Melody
 int melCount = 0;
-int melGain = 1;   // for melody note rest
+float melGain = 1;   // for melody note rest
 int b = 0;         // index for melody arr current beat
 int duration = 0;  // period between note change
+short decayRate = 1;
 
 void PlayMelody() {
   if (melCount == 0) {  // Change to next note
@@ -33,12 +34,8 @@ void PlayMelody() {
     printf("Pitch Factor : %f, Semitone: %d, Duration : %d\n", pitch_factor,
            melody[b + 1], duration);
     b = (b + 2) % melLength;
+    decayRate = 1;
   }
-  if (melCount > duration * 0.9) {  // melody decay last 10%
-    melGain = 0;
-    printf("Melody Gain : %d\n", melGain);
-  }
-
   melCount = (melCount + 1) % duration;
 }
 
