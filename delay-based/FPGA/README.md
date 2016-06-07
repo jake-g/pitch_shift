@@ -26,12 +26,12 @@ NOTE: Only one of switches 1 through 4 should be enabled. Others get disabled
 - ![alt tag](https://github.com/jake-g/audio_fx/blob/master/delay-based/GUI/matlab_GUI.PNG)
 
 ## TODO's:
-* when switchMask1_4 is set to 0, reset pitch_factor to 1
-* Fix looping by inserting a silence of size 5000 samples (i.e. play 5000 samples, then rest 5000 samples) experiement around with a rest number (5000 or mayby more or less?)
+* ~~when switchMask1_4 is set to 0, reset pitch_factor to 1~~
+* ~~Fix looping by inserting a silence of size 5000 samples (i.e. play 5000 samples, then rest 5000 samples) experiement around with a rest number (5000 or mayby more or less?)~~
 * ~~melody header~~
   * ~~should be able to copy and paste result from Matlab.~~
   * ~~Have decay at the end of each note~~
 
-* sampler mode
+* ~~sampler mode~~
  * ~~C UART buffer~~
  * ~~Matlab sampler~~
