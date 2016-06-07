@@ -22,7 +22,7 @@ function varargout = piano2(varargin)
 
 % Edit the above text to modify the response to help piano2
 
-% Last Modified by GUIDE v2.5 06-Jun-2016 00:54:48
+% Last Modified by GUIDE v2.5 06-Jun-2016 17:12:25
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -61,6 +61,7 @@ handles.Melody = 0;
 handles.TimeValue   = 0.3488;
 handles.KeyValue = 261.625;
 handles.SampleBuffer = 0;
+
 
 % Update handles structure
 guidata(hObject, handles);
@@ -422,6 +423,7 @@ SquareOn    = get(handles.SquareWave, 'Value');
 SawtoothOn  = get(handles.SawtoothWave, 'Value');
 SampleOn    = get(handles.Sample, 'Value');
 
+
 if SinOn == 1
   soundVector = sin(2*pi*freq*Samples);
 elseif SquareOn == 1
@@ -443,7 +445,7 @@ elseif SampleOn == 1
         sampleEnd = str2num(sampleEnd);
     end
     croppedBuf = Buffer(sampleStart:sampleEnd);
-    
+
     % Pitch Shift
     num = 10000;
     den = round(10000*factor);
@@ -459,7 +461,6 @@ elseif SampleOn == 1
       disp('No sample recorded');
   end
 end
-
 
 soundsc(soundVector, 1/SampleRate)
 RecordOn = get(handles.Record, 'Value');
@@ -481,6 +482,24 @@ if RecordOn == 1
   guidata(handles.figure1, handles);  
 end
 
+
+function SampleStart_Callback(hObject, eventdata, handles)
+% hObject    handle to SampleStart (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of SampleStart as text
+%        str2double(get(hObject,'String')) returns contents of SampleStart as a double
+
+
+function SampleEnd_Callback(hObject, eventdata, handles)
+% hObject    handle to SampleEnd (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of SampleEnd as text
+%        str2double(get(hObject,'String')) returns contents of SampleEnd as a double
+
 % --- Executes on button press in Play.
 function Play_Callback(hObject, eventdata, handles)
 % hObject    handle to Play (see GCBO)
@@ -500,39 +519,6 @@ function Stop_Callback(hObject, eventdata, handles)
 
 handles.SoundVector = 0;
 guidata(handles.figure1, handles);
-
-
-% --- Executes on button press in Loop.
-function Loop_Callback(hObject, eventdata, handles)
-% hObject    handle to Loop (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% --- Executes during object creation, after setting all properties.
-function SampleStart_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SampleStart (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-% --- Executes during object creation, after setting all properties.
-function SampleEnd_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to SampleEnd (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
 
 function Time_Callback(hObject, eventdata, handles)
 % hObject    handle to Time (see GCBO)
@@ -641,48 +627,40 @@ function RecieveData_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Get Buffer
-buf = load('hello.mat');
+% Init COM
+delete(instrfindall);
+COM = ['COM',get(handles.comPort, 'String')];
+s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
+set(s,'InputBufferSize',20000); % set the size of input buffer
+fopen(s); % get ready to receive the data
+buffersize = 8002; % set the size of instant read of buffer
 
-% Load Sample
-handles.SampleBuffer = buf.x(1:end);
+% Listen
+buffer = fread(s,buffersize, 'int16'); % read the buffer when data arrive
+pInt = buffer(1);  
+sw = buffer(2);
+handles.SampleBuffer = buffer(3:end);
+pitch = pInt/10000;
+semitone = round(log2(pitch)*12);
+set(handles.STCurrValue, 'String', num2str(semitone));
+
+% Switch Status
+switch sw
+    case 1
+        set(handles.SWmelody,'Value', 1)
+    case 2
+        set(handles.SWecho,'Value', 1)
+    case 4
+        set(handles.SWpitch,'Value', 1)
+    case 8
+        set(handles.SWloop,'Value', 1)
+    otherwise
+        set(handles.SWnone,'Value', 1)
+end
+
+fclose(s);
 guidata(handles.figure1, handles);  
 
-% 
-% % Init COM
-% delete(instrfindall);
-% COM = ['COM',get(handles.comPort, 'String')];
-% s = serial(COM, 'BaudRate',115200); % Open the serial port to receive the data
-% set(s,'InputBufferSize',20000); % set the size of input buffer
-% fopen(s); % get ready to receive the data
-% buffersize = 2; % set the size of instant read of buffer
-% 
-% % Listen
-% buffer = fread(s,buffersize, 'int16'); % read the buffer when data arrive
-% pInt = buffer(1);  
-% sw = buffer(2)
-% pitch = pInt/10000;
-% semitone = round(log2(pitch)*12);
-% set(handles.STCurrValue, 'String', num2str(semitone));
-% 
-% % Get Buffer
-% handles.sampleBuffer = load('hello.mat');
-% 
-% % Switch Status
-% switch sw
-%     case 1
-%         set(handles.SWmelody,'Value', 1)
-%     case 2
-%         set(handles.SWecho,'Value', 1)
-%     case 4
-%         set(handles.SWpitch,'Value', 1)
-%     case 8
-%         set(handles.SWloop,'Value', 1)
-%     otherwise
-%         set(handles.SWnone,'Value', 1)
-% end
-% 
-% fclose(s);
 
 
 % --- Executes on button press in QuarterNote.
@@ -834,9 +812,10 @@ set(handles.SquareWave, 'Value', 0);
 set(handles.SawtoothWave, 'Value', 0);
 set(handles.Sample, 'Value', 1);
 
-% --- Executes on button press in SendNote.
+
+% --- Executes on button press in pushbutton55.
 function pushbutton55_Callback(hObject, eventdata, handles)
-% hObject    handle to SendNote (see GCBO)
+% hObject    handle to pushbutton55 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
@@ -909,45 +888,3 @@ function SWnone_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of SWnone
 
 
-function TimeValue_Callback(hObject, eventdata, handles)
-% hObject    handle to Time (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of Time as text
-%        str2double(get(hObject,'String')) returns contents of Time as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function Time_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Time (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-function KeyValue_Callback(hObject, eventdata, handles)
-% hObject    handle to KeyValue (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of KeyValue as text
-%        str2double(get(hObject,'String')) returns contents of KeyValue as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function KeyValue_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to KeyValue (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
