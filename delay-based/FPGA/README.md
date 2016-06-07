@@ -34,4 +34,4 @@ NOTE: Only one of switches 1 through 4 should be enabled. Others get disabled
 
 * sampler mode
  * ~~C UART buffer~~
- * Matlab sampler
+ * ~~Matlab sampler~~
