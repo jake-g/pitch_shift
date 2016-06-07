@@ -174,6 +174,9 @@ static void handle_switch1_interrupt(void* context, alt_u32 id) {
   /*Perform Jobs*/
   currSw1 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
   if (prevSw1 != currSw1) {
+    if (!currSw1) {
+    	pitch_factor = 1;
+    }
     gain = 0.6;
     prevSw1 = currSw1;
     // 0b0001
@@ -192,6 +195,9 @@ static void handle_switch2_interrupt(void* context, alt_u32 id) {
   /*Perform Jobs*/
   currSw2 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH2_BASE);
   if (prevSw2 != currSw2) {
+    if (!currSw2) {
+    	pitch_factor = 1;
+    }
     gain = 0.6;
     prevSw2 = currSw2;
     // 0b0010
@@ -210,6 +216,9 @@ static void handle_switch3_interrupt(void* context, alt_u32 id) {
   /*Perform Jobs*/
   currSw3 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH3_BASE);
   if (prevSw3 != currSw3) {
+    if (!currSw3) {
+    	pitch_factor = 1;
+    }
     gain = 0.6;
     prevSw3 = currSw3;
     // 0b0100
@@ -228,6 +237,9 @@ static void handle_switch4_interrupt(void* context, alt_u32 id) {
   /*Perform Jobs*/
   currSw4 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH4_BASE);
   if (prevSw4 != currSw4) {
+    if (!currSw4) {
+    	pitch_factor = 1;
+    }
     gain = 1;
     prevSw4 = currSw4;
     // 0b1000
