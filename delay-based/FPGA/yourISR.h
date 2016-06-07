@@ -50,7 +50,6 @@ int iii = 0;
 int input_ready = 0;
 short ptrStatus = 0;
 int semitoneFlag = 0;
-int melodyFlag = 0;
 
 // Varaibles to handle switch toggle safely
 short prevSw0 = 0;
@@ -175,11 +174,10 @@ static void handle_switch1_interrupt(void* context, alt_u32 id) {
   /*Perform Jobs*/
   currSw1 = IORD_ALTERA_AVALON_PIO_DATA(SWITCH1_BASE);
   if (prevSw1 != currSw1) {
-    melodyFlag = currSw1;
     gain = 0.6;
     prevSw1 = currSw1;
     // 0b0001
-    switchMask1_4 = melodyFlag;
+    switchMask1_4 = currSw1;
     printf("Melody Toggle : %d\n", switchMask1_4);
   }
 }

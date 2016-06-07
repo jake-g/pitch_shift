@@ -234,7 +234,7 @@ int main(void) {
 
     if (input_ready) {
       // Play melody
-      if (melodyFlag == 1) {
+      if (switchMask1_4 == 1) {
         PlayMelody();
       }
 
