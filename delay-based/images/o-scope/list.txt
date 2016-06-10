@@ -1,0 +1,46 @@
+list of pictures to take 
+------------------------------------
+
+Sine and square wave pitch shift (up and down) - yellow is rightIn (no shift)
+Sine 
+- E4 329.63 Hz
+-- 3 semitones up   pitch factor = 1.189
+-- 2 semitones down pitch factor = 0.891
+
+Square
+- E4 329.63 Hz
+-- 3 semitones up   pitch factor = 1.189
+-- 2 semitones down pitch factor = 0.891
+
+
+Speech original and shifted - blue is rightIn (no shift)
+spoke 'hello'
+- shift up by 12 semitones 
+- shift down by 4 semitones
+
+Echo: (blue is rightIn)
+- sampleDelay = 1400, pitch factor = 1, play B4 (freq 493.88 Hz)
+- img1 = both are playing 
+- img2 = rightIn almost finished, echo remaining
+- img3 = rightIn finished, echo remaining
+- img4 = zoomed out to see overall envelope
+
+Loop:
+- img1 = signal to be repeated
+- img2 = result of repeated signals
+
+Pitch echo: (sine wave of freq 440 Hz played)
+- img1 = highest pitch shift echo 
+- img2 = high pitch shift echo
+- img3 = mid pitch shift echo 
+- img4 = low pitch shift echo
+
+
+Matlab plots for sampler mode: (spoke 'hello')
+- img1 = C4 (unchaged sample):
+- img2 = C5 (octave up)
+- img3 = C3 (octave down)
+
+
+Playing last buffer: this is to be included in ping pong buffer implementation section
+

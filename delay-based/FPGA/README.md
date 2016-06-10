@@ -60,17 +60,24 @@ _SW1 – SW4: ON is enabled, OFF is disabled, only one can be enabled_
 - **SW4 Loop:** Loop input indefinitely
   - Keys control pitch shift
 
-## Software Interface: 
-- GUI: Matlab 
-- ![alt tag](https://github.com/jake-g/audio_fx/blob/master/delay-based/GUI/matlab_GUI.PNG)
+## Software Interface:
+GUI: Matlab
+![alt tag](https://github.com/jake-g/audio_fx/blob/master/delay-based/GUI/matlab_GUI.PNG)
+1. **Global settings:** Displays current note as well as global tempo and key
+  * User an input tempo and key note frequency
 
-## TODO's:
-* ~~when switchMask1_4 is set to 0, reset pitch_factor to 1~~
-* ~~Fix looping by inserting a silence of size 5000 samples (i.e. play 5000 samples, then rest 5000 samples) experiement around with a rest number (5000 or mayby more or less?)~~
-* ~~melody header~~
-  * ~~should be able to copy and paste result from Matlab.~~
-  * ~~Have decay at the end of each note~~
+1. **Waveform select:** Choose waveform to map to piano keys
 
-* ~~sampler mode~~
- * ~~C UART buffer~~
- * ~~Matlab sampler~~
+2. **Sample Mode:** Maps sample (from UART) to piano keys using pitch shift algorithm
+  * User can input sample start and end points
+
+3. **Melody Controls:** Play, record or reset a melody
+
+4. **Note length:** Sets duration of next note played
+
+5. **UART Control:** Initialize and receive UART
+  * User can set COM port
+  * Receive, then press KEY3 on hardware to send switch config, current note and an audio sample
+  * Audio sample is used when in Sample Mode
+
+6. **Hardware Status:** Indicates current pitch setting and Effects switch configuration
