@@ -22,6 +22,7 @@
 <!--NOTE: Only one of switches 1 through 4 should be enabled. Others get disabled-->
 
 ## Hardware Control
+![Diagram](https://github.com/jake-g/audio_fx/blob/master/delay-based/images/block%20diagram.png?raw=true)
 ### Pitch Shift Control
 
 - **KEY0:** Pitch reset (p = 1, semitone = 0, no shift)
@@ -61,8 +62,7 @@ _SW1 – SW4: ON is enabled, OFF is disabled, only one can be enabled_
   - Keys control pitch shift
 
 ## Software Interface:
-GUI: Matlab
-![alt tag](https://github.com/jake-g/audio_fx/blob/master/delay-based/GUI/matlab_GUI.PNG)
+![Matlab GUI](https://github.com/jake-g/audio_fx/blob/master/delay-based/images/labled%20gui.png?raw=trueg)
 1. **Global settings:** Displays current note as well as global tempo and key
   * User an input tempo and key note frequency
 
