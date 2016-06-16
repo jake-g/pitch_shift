@@ -11,3 +11,8 @@ Based off the Notes
 * Compile : run `make` (`make clean` is also available)
 * Execute:  `./shiftWav semitones file.wav`
 * Note: `semitones` is an int, `file.wav` must be in the `sound_files/` folder
+
+### FPGA and GUI
+Runs on FPGA in realtime and has Matlab GUI
+
+See [README](https://github.com/jake-g/audio_fx/blob/master/delay-based/FPGA/README.md)
